@@ -16,6 +16,8 @@ pub fn init_registry_js() -> String {
     if (!window.__dioxus_maplibre_maps) {
         window.__dioxus_maplibre_maps = {};
         window.__dioxus_maplibre_markers = {};
+        window.__dioxus_maplibre_sources = {};
+        window.__dioxus_maplibre_layers = {};
     }
     "#.to_string()
 }
@@ -98,6 +100,8 @@ pub fn init_map_js(
             if (!window.__dioxus_maplibre_maps) {{
                 window.__dioxus_maplibre_maps = {{}};
                 window.__dioxus_maplibre_markers = {{}};
+                window.__dioxus_maplibre_sources = {{}};
+                window.__dioxus_maplibre_layers = {{}};
             }}
 
             // Check if this container already has a map (by checking for canvas)
@@ -129,11 +133,15 @@ pub fn init_map_js(
                 // Store map reference using the actual container ID
                 window.__dioxus_maplibre_maps[actualContainerId] = map;
                 window.__dioxus_maplibre_markers[actualContainerId] = {{}};
+                window.__dioxus_maplibre_sources[actualContainerId] = {{}};
+                window.__dioxus_maplibre_layers[actualContainerId] = [];
 
-                // Also store under the original map_id for marker lookups
+                // Also store under the original map_id for lookups
                 // (handles case where Dioxus remounts component with new ID)
                 window.__dioxus_maplibre_maps['{map_id}'] = map;
                 window.__dioxus_maplibre_markers['{map_id}'] = window.__dioxus_maplibre_markers[actualContainerId];
+                window.__dioxus_maplibre_sources['{map_id}'] = window.__dioxus_maplibre_sources[actualContainerId];
+                window.__dioxus_maplibre_layers['{map_id}'] = window.__dioxus_maplibre_layers[actualContainerId];
 
                 // Set up global event sender for markers to use
                 // (markers run in separate eval contexts and can't use dioxus.send directly)
@@ -389,6 +397,318 @@ pub fn update_marker_position_js(map_id: &str, marker_id: &str, lat: f64, lng: f
             const markers = window.__dioxus_maplibre_markers['{map_id}'];
             if (markers && markers['{marker_id}']) {{
                 markers['{marker_id}'].setLngLat([{lng}, {lat}]);
+            }}
+        }})();
+        "#
+    )
+}
+
+// =============================================================================
+// GeoJSON Source and Layer Functions
+// =============================================================================
+
+/// Generate JS to add a GeoJSON source to the map
+pub fn add_geojson_source_js(map_id: &str, source_id: &str, geojson: &str) -> String {
+    format!(
+        r#"
+        (function() {{
+            let map = window.__dioxus_maplibre_maps['{map_id}'];
+            if (!map) {{
+                const mapKeys = Object.keys(window.__dioxus_maplibre_maps || {{}});
+                if (mapKeys.length > 0) {{
+                    map = window.__dioxus_maplibre_maps[mapKeys[0]];
+                }}
+            }}
+            if (!map) {{
+                console.error('[dioxus-maplibre] No map found for source');
+                return;
+            }}
+
+            // Check if source already exists
+            if (map.getSource('{source_id}')) {{
+                console.log('[dioxus-maplibre] Source already exists:', '{source_id}');
+                return;
+            }}
+
+            try {{
+                const data = {geojson};
+                map.addSource('{source_id}', {{
+                    type: 'geojson',
+                    data: data
+                }});
+                console.log('[dioxus-maplibre] Added GeoJSON source:', '{source_id}', 'with', data.features?.length || 0, 'features');
+
+                // Track in registry
+                if (!window.__dioxus_maplibre_sources['{map_id}']) {{
+                    window.__dioxus_maplibre_sources['{map_id}'] = {{}};
+                }}
+                window.__dioxus_maplibre_sources['{map_id}']['{source_id}'] = true;
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to add source:', err);
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to update a GeoJSON source's data
+pub fn update_geojson_source_js(map_id: &str, source_id: &str, geojson: &str) -> String {
+    format!(
+        r#"
+        (function() {{
+            let map = window.__dioxus_maplibre_maps['{map_id}'];
+            if (!map) {{
+                const mapKeys = Object.keys(window.__dioxus_maplibre_maps || {{}});
+                if (mapKeys.length > 0) {{
+                    map = window.__dioxus_maplibre_maps[mapKeys[0]];
+                }}
+            }}
+            if (!map) return;
+
+            const source = map.getSource('{source_id}');
+            if (source) {{
+                try {{
+                    const data = {geojson};
+                    source.setData(data);
+                    console.log('[dioxus-maplibre] Updated source:', '{source_id}', 'with', data.features?.length || 0, 'features');
+                }} catch (err) {{
+                    console.error('[dioxus-maplibre] Failed to update source:', err);
+                }}
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to remove a source from the map
+pub fn remove_source_js(map_id: &str, source_id: &str) -> String {
+    format!(
+        r#"
+        (function() {{
+            let map = window.__dioxus_maplibre_maps['{map_id}'];
+            if (!map) {{
+                const mapKeys = Object.keys(window.__dioxus_maplibre_maps || {{}});
+                if (mapKeys.length > 0) {{
+                    map = window.__dioxus_maplibre_maps[mapKeys[0]];
+                }}
+            }}
+            if (!map) return;
+
+            try {{
+                if (map.getSource('{source_id}')) {{
+                    map.removeSource('{source_id}');
+                    console.log('[dioxus-maplibre] Removed source:', '{source_id}');
+                }}
+                // Clean up registry
+                if (window.__dioxus_maplibre_sources['{map_id}']) {{
+                    delete window.__dioxus_maplibre_sources['{map_id}']['{source_id}'];
+                }}
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to remove source:', err);
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to add a layer to the map with click and hover event handlers
+pub fn add_layer_js(
+    map_id: &str,
+    layer_id: &str,
+    layer_type: &str,
+    source_id: &str,
+    paint: &str,
+    layout: &str,
+) -> String {
+    format!(
+        r#"
+        (function() {{
+            let map = window.__dioxus_maplibre_maps['{map_id}'];
+            if (!map) {{
+                const mapKeys = Object.keys(window.__dioxus_maplibre_maps || {{}});
+                if (mapKeys.length > 0) {{
+                    map = window.__dioxus_maplibre_maps[mapKeys[0]];
+                }}
+            }}
+            if (!map) {{
+                console.error('[dioxus-maplibre] No map found for layer');
+                return;
+            }}
+
+            // Check if layer already exists
+            if (map.getLayer('{layer_id}')) {{
+                console.log('[dioxus-maplibre] Layer already exists:', '{layer_id}');
+                return;
+            }}
+
+            // Wait for source to be available
+            if (!map.getSource('{source_id}')) {{
+                console.error('[dioxus-maplibre] Source not found for layer:', '{source_id}');
+                return;
+            }}
+
+            try {{
+                map.addLayer({{
+                    id: '{layer_id}',
+                    type: '{layer_type}',
+                    source: '{source_id}',
+                    paint: {paint},
+                    layout: {layout}
+                }});
+                console.log('[dioxus-maplibre] Added layer:', '{layer_id}', 'type:', '{layer_type}');
+
+                // Track in registry
+                if (!window.__dioxus_maplibre_layers['{map_id}']) {{
+                    window.__dioxus_maplibre_layers['{map_id}'] = [];
+                }}
+                window.__dioxus_maplibre_layers['{map_id}'].push('{layer_id}');
+
+                // Attach click handler
+                map.on('click', '{layer_id}', function(e) {{
+                    if (e.features && e.features.length > 0) {{
+                        e.originalEvent.stopPropagation();
+                        const feature = e.features[0];
+                        if (window.__dioxus_maplibre_sendEvent) {{
+                            window.__dioxus_maplibre_sendEvent(JSON.stringify({{
+                                type: 'layer_click',
+                                layer_id: '{layer_id}',
+                                feature_id: feature.id !== undefined ? feature.id : null,
+                                properties: feature.properties || {{}},
+                                latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }}
+                            }}));
+                        }}
+                    }}
+                }});
+
+                // Attach hover handlers
+                map.on('mouseenter', '{layer_id}', function(e) {{
+                    map.getCanvas().style.cursor = 'pointer';
+                    if (e.features && e.features.length > 0) {{
+                        const feature = e.features[0];
+                        if (window.__dioxus_maplibre_sendEvent) {{
+                            window.__dioxus_maplibre_sendEvent(JSON.stringify({{
+                                type: 'layer_hover',
+                                layer_id: '{layer_id}',
+                                feature_id: feature.id !== undefined ? feature.id : null,
+                                properties: feature.properties || {{}},
+                                latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
+                                cursor_x: e.originalEvent.clientX,
+                                cursor_y: e.originalEvent.clientY
+                            }}));
+                        }}
+                    }}
+                }});
+
+                map.on('mouseleave', '{layer_id}', function() {{
+                    map.getCanvas().style.cursor = '';
+                    if (window.__dioxus_maplibre_sendEvent) {{
+                        window.__dioxus_maplibre_sendEvent(JSON.stringify({{
+                            type: 'layer_hover',
+                            layer_id: '{layer_id}',
+                            feature_id: null,
+                            properties: null,
+                            latlng: {{ lat: 0, lng: 0 }},
+                            cursor_x: 0,
+                            cursor_y: 0
+                        }}));
+                    }}
+                }});
+
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to add layer:', err);
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to remove a layer from the map
+pub fn remove_layer_js(map_id: &str, layer_id: &str) -> String {
+    format!(
+        r#"
+        (function() {{
+            let map = window.__dioxus_maplibre_maps['{map_id}'];
+            if (!map) {{
+                const mapKeys = Object.keys(window.__dioxus_maplibre_maps || {{}});
+                if (mapKeys.length > 0) {{
+                    map = window.__dioxus_maplibre_maps[mapKeys[0]];
+                }}
+            }}
+            if (!map) return;
+
+            try {{
+                if (map.getLayer('{layer_id}')) {{
+                    // Remove event listeners first (MapLibre handles this automatically on removeLayer)
+                    map.removeLayer('{layer_id}');
+                    console.log('[dioxus-maplibre] Removed layer:', '{layer_id}');
+                }}
+                // Clean up registry
+                if (window.__dioxus_maplibre_layers['{map_id}']) {{
+                    const idx = window.__dioxus_maplibre_layers['{map_id}'].indexOf('{layer_id}');
+                    if (idx > -1) {{
+                        window.__dioxus_maplibre_layers['{map_id}'].splice(idx, 1);
+                    }}
+                }}
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to remove layer:', err);
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to update a layer's paint properties
+pub fn update_layer_paint_js(map_id: &str, layer_id: &str, property: &str, value: &str) -> String {
+    format!(
+        r#"
+        (function() {{
+            let map = window.__dioxus_maplibre_maps['{map_id}'];
+            if (!map) {{
+                const mapKeys = Object.keys(window.__dioxus_maplibre_maps || {{}});
+                if (mapKeys.length > 0) {{
+                    map = window.__dioxus_maplibre_maps[mapKeys[0]];
+                }}
+            }}
+            if (!map) return;
+
+            try {{
+                if (map.getLayer('{layer_id}')) {{
+                    map.setPaintProperty('{layer_id}', '{property}', {value});
+                }}
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to update layer paint:', err);
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to set feature state (for hover highlighting, etc.)
+pub fn set_feature_state_js(
+    map_id: &str,
+    source_id: &str,
+    feature_id: i64,
+    state: &str,
+) -> String {
+    format!(
+        r#"
+        (function() {{
+            let map = window.__dioxus_maplibre_maps['{map_id}'];
+            if (!map) {{
+                const mapKeys = Object.keys(window.__dioxus_maplibre_maps || {{}});
+                if (mapKeys.length > 0) {{
+                    map = window.__dioxus_maplibre_maps[mapKeys[0]];
+                }}
+            }}
+            if (!map) return;
+
+            try {{
+                map.setFeatureState(
+                    {{ source: '{source_id}', id: {feature_id} }},
+                    {state}
+                );
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to set feature state:', err);
             }}
         }})();
         "#

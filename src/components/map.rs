@@ -3,7 +3,7 @@
 use dioxus::prelude::*;
 
 use crate::context::MapContext;
-use crate::events::{MapClickEvent, MapMoveEvent, MarkerClickEvent};
+use crate::events::{MapClickEvent, MapMoveEvent, MarkerClickEvent, LayerClickEvent, LayerHoverEvent};
 use crate::interop::generate_map_id;
 use crate::types::LatLng;
 
@@ -58,7 +58,15 @@ pub struct MapProps {
     #[props(optional)]
     pub on_move: Option<EventHandler<MapMoveEvent>>,
 
-    /// Child components (Marker, etc.)
+    /// Callback when a feature in a layer is clicked
+    #[props(optional)]
+    pub on_layer_click: Option<EventHandler<LayerClickEvent>>,
+
+    /// Callback when hovering over a feature in a layer
+    #[props(optional)]
+    pub on_layer_hover: Option<EventHandler<LayerHoverEvent>>,
+
+    /// Child components (Marker, GeoJsonSource, etc.)
     #[props(optional)]
     pub children: Element,
 }
@@ -97,6 +105,8 @@ pub fn Map(props: MapProps) -> Element {
         let on_marker_click = props.on_marker_click;
         let on_marker_hover = props.on_marker_hover;
         let on_move = props.on_move;
+        let on_layer_click = props.on_layer_click;
+        let on_layer_hover = props.on_layer_hover;
 
         // Initialize map and set up event loop - only once
         {
@@ -173,6 +183,20 @@ pub fn Map(props: MapProps) -> Element {
                                             if let Ok(move_event) = serde_json::from_value::<MapMoveEvent>(event.clone()) {
                                                 if let Some(handler) = &on_move {
                                                     handler.call(move_event);
+                                                }
+                                            }
+                                        }
+                                        Some("layer_click") => {
+                                            if let Ok(layer_event) = serde_json::from_value::<LayerClickEvent>(event.clone()) {
+                                                if let Some(handler) = &on_layer_click {
+                                                    handler.call(layer_event);
+                                                }
+                                            }
+                                        }
+                                        Some("layer_hover") => {
+                                            if let Ok(layer_event) = serde_json::from_value::<LayerHoverEvent>(event.clone()) {
+                                                if let Some(handler) = &on_layer_hover {
+                                                    handler.call(layer_event);
                                                 }
                                             }
                                         }

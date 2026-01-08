@@ -37,7 +37,7 @@ pub mod components;
 
 // Re-export public API
 pub use types::{LatLng, MapPosition, Bounds, Point};
-pub use events::{MapClickEvent, MarkerClickEvent, MapMoveEvent};
+pub use events::{MapClickEvent, MarkerClickEvent, MapMoveEvent, LayerClickEvent, LayerHoverEvent};
 pub use context::MapContext;
-pub use components::{Map, Marker, Popup};
+pub use components::{Map, Marker, Popup, GeoJsonSource, CircleLayer};
 pub use components::map::{MarkerHoverEvent, fly_to, pan_by};
