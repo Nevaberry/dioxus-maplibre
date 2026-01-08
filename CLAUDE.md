@@ -12,17 +12,18 @@ dioxus-maplibre is a MapLibre GL JS wrapper for Dioxus 0.7+. It provides Rust co
 # Build the library
 cargo build
 
-# Run tests
+# Run unit tests
 cargo test
 
 # Check compilation
 cargo check
 
-# Test with a consuming app
-# Create a test app that depends on this crate via path
-```
+# Run showcase app (for manual testing)
+cd examples/showcase && dx serve --port 8080
 
-Note: This is a library crate. To test changes, create a consuming app that depends on this crate via path.
+# E2E tests with Playwright (requires Bun)
+cd e2e && bun install && bun test
+```
 
 ## Architecture
 

@@ -1,0 +1,9 @@
+[package]
+name = "showcase"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[dependencies]
+dioxus = { version = "0.7", features = ["web"] }
+dioxus-maplibre = { path = "../.." }

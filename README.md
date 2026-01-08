@@ -65,6 +65,18 @@ fn App() -> Element {
 - `fly_to(map_id, latlng, zoom)` - Animate the map to a location
 - `pan_by(x, y)` - Pan the map by pixel offset
 
+## Development
+
+```bash
+# Run tests
+cargo test
+
+# Run showcase app
+cd examples/showcase && dx serve --port 8080
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full development setup and testing instructions.
+
 ## License
 
 Licensed under either of:
