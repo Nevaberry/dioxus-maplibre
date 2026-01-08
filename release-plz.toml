@@ -1,0 +1,36 @@
+# release-plz configuration
+# https://release-plz.ieni.dev/docs/config
+
+[workspace]
+# Create GitHub releases when publishing
+release = true
+
+# Update changelog
+changelog_update = true
+
+# Commit message for version bumps
+git_release_name = "v{{ version }}"
+
+# PR settings
+pr_labels = ["release"]
+
+[changelog]
+# Changelog format
+body = """
+## What's Changed
+
+{% for commit in commits %}
+- {{ commit.message }} ({{ commit.id | truncate(length=7, end="") }})
+{% endfor %}
+"""
+
+# Commit types to include in changelog
+commit_parsers = [
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^perf", group = "Performance" },
+    { message = "^refactor", group = "Refactoring" },
+    { message = "^test", group = "Testing" },
+    { message = "^chore", group = "Miscellaneous" },
+]
