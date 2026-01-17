@@ -24,7 +24,6 @@ pub struct MarkerProps {
     pub popup: Option<String>,
 
     /// Child Popup component
-    #[props(optional)]
     pub children: Element,
 }
 

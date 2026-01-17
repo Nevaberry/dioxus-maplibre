@@ -1,0 +1,24 @@
+{
+  "name": "maplibre-native-showcase",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/server.ts",
+    "dev:watch": "bun run --watch src/server.ts",
+    "build": "bun build src/main.ts --outdir=dist --minify",
+    "fetch-fixtures": "bun run scripts/fetch-fixtures.ts",
+    "fetch-fixtures:full": "bun run scripts/fetch-fixtures.ts --full",
+    "fetch-fixtures:resume": "bun run scripts/fetch-fixtures.ts --resume",
+    "clean-fixtures": "bun run scripts/clean-fixtures.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "maplibre-gl": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/geojson": "^7946.0.14",
+    "typescript": "^5.3.0"
+  }
+}

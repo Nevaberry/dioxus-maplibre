@@ -6,4 +6,8 @@ default_platform = "web"
 title = "dioxus-maplibre showcase"
 
 [web.resource]
-dev = "assets"
+style = ["https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css"]
+script = ["https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"]
+
+[web.resource.dev]
+assets = "assets"

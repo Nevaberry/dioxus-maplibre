@@ -12,14 +12,23 @@ target
 # Contains mutation testing data
 **/mutants.out*/
 
+# Temp folder
 temp/
 
 # E2E tests
+/e2e/tests/map-render.spec.ts-snapshots/
+e2e/native-showcase/node_modules/
 e2e/node_modules/
 e2e/playwright-report/
 e2e/test-results/
 e2e/.cache/
+e2e/*/fixtures/
+e2e/*/.progress.json
+e2e/*/.env.local
 
 # Dioxus build output
 examples/*/dist/
 examples/*/.dioxus/
+
+# AI
+.claude/

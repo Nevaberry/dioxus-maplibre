@@ -8,6 +8,17 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
 
+  // Output directory for screenshots and traces
+  outputDir: './test-results',
+
+  // Snapshot settings for visual regression
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixels: 500, // Allow some variance for antialiasing
+      threshold: 0.1, // 10% pixel difference threshold
+    },
+  },
+
   use: {
     baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
@@ -38,11 +49,19 @@ export default defineConfig({
     },
   ],
 
-  // Run showcase app before tests
-  webServer: {
-    command: 'cd ../examples/showcase && dx serve --port 8080',
-    url: 'http://localhost:8080',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes for dx build
-  },
+  // Run both servers before tests
+  webServer: [
+    {
+      command: 'cd ../examples/showcase && dx serve --port 8080',
+      url: 'http://localhost:8080',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000, // 2 minutes for dx build
+    },
+    {
+      command: 'cd native-showcase && bun run dev',
+      url: 'http://localhost:3000',
+      reuseExistingServer: !process.env.CI,
+      timeout: 30 * 1000,
+    },
+  ],
 });

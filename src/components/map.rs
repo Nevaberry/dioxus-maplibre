@@ -67,7 +67,6 @@ pub struct MapProps {
     pub on_layer_hover: Option<EventHandler<LayerHoverEvent>>,
 
     /// Child components (Marker, GeoJsonSource, etc.)
-    #[props(optional)]
     pub children: Element,
 }
 
@@ -95,7 +94,7 @@ pub fn Map(props: MapProps) -> Element {
     #[cfg(target_arch = "wasm32")]
     {
         use crate::interop::{destroy_map_js, init_map_js};
-        use tracing::{debug, error};
+        use tracing::debug;
 
         // Store props for effect closure
         let style = props.style.clone();
