@@ -17,9 +17,96 @@ const MIME_TYPES: Record<string, string> = {
   ".geojson": "application/geo+json",
 };
 
+// Handle /fixture/:category/:test route for rendering fixture test maps
+async function handleFixtureRequest(
+  category: string,
+  test: string
+): Promise<Response> {
+  const stylePath = join(ROOT_DIR, "fixtures", category, test, "style.json");
+
+  if (!(await exists(stylePath))) {
+    return new Response(`Fixture not found: ${category}/${test}`, {
+      status: 404,
+    });
+  }
+
+  const styleContent = await readFile(stylePath, "utf-8");
+  const style = JSON.parse(styleContent);
+
+  // Extract dimensions from metadata.test
+  const width = style.metadata?.test?.width || 512;
+  const height = style.metadata?.test?.height || 512;
+
+  // Generate HTML page that renders the map at the exact size
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fixture: ${category}/${test}</title>
+  <link href="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; }
+    #map {
+      width: ${width}px;
+      height: ${height}px;
+      background: transparent;
+    }
+    .maplibregl-ctrl-logo, .maplibregl-ctrl-attrib { display: none !important; }
+    .maplibregl-canvas { background: transparent !important; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
+  <script>
+    const style = ${styleContent};
+
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: style,
+      center: style.center || [0, 0],
+      zoom: style.zoom !== undefined ? style.zoom : 0,
+      bearing: style.bearing || 0,
+      pitch: style.pitch || 0,
+      attributionControl: false,
+      preserveDrawingBuffer: true,
+      fadeDuration: 0,
+      crossSourceCollisions: style.metadata?.test?.crossSourceCollisions !== false,
+      interactive: false
+    });
+
+    map.on('idle', () => {
+      window.__mapReady = true;
+    });
+
+    map.on('load', () => {
+      // Signal that the map has loaded
+      window.__mapLoaded = true;
+    });
+  </script>
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html",
+      "Cache-Control": "no-cache",
+    },
+  });
+}
+
 async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
   let pathname = url.pathname;
+
+  // Handle fixture route: /fixture/:category/:test
+  const fixtureMatch = pathname.match(/^\/fixture\/([^/]+)\/([^/]+)\/?$/);
+  if (fixtureMatch) {
+    const [, category, test] = fixtureMatch;
+    return handleFixtureRequest(category, test);
+  }
 
   // Default to index.html
   if (pathname === "/") {
@@ -89,7 +176,7 @@ async function serveTypeScript(filePath: string): Promise<Response> {
   });
 }
 
-const server = Bun.serve({
+Bun.serve({
   port: PORT,
   fetch: handleRequest,
 });

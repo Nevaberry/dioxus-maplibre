@@ -45,23 +45,81 @@ Visual regression and interaction tests. Requires [Bun](https://bun.sh/).
 # Install Bun (if not installed)
 curl -fsSL https://bun.sh/install | bash
 
-# Install Playwright
+# Install Playwright and browsers
 cd e2e
 bun install
-bunx playwright install chromium
+bunx playwright install
+```
 
-# Run tests (starts showcase automatically)
-bun test
+#### Installing System Dependencies for Browsers
+
+Playwright requires system-level dependencies for WebKit/Safari. If you see errors like "Host system is missing dependencies to run browsers", install them:
+
+**Debian/Ubuntu:**
+```bash
+sudo bunx playwright install-deps
+```
+
+Or install specific packages:
+```bash
+sudo apt-get install libwoff2dec1 libenchant-2-2 libmanette-0.2-0
+```
+
+#### Running E2E Tests
+
+**Important:** Use `bun run test`, NOT `bun test` (they are different commands).
+
+```bash
+cd e2e
+
+# Run all tests (all browsers)
+bun run test
 
 # Run with visible browser
-bun test:headed
+bun run test:headed
+
+# Run with interactive UI
+bun run test:ui
 
 # Update screenshots after intentional changes
-bun test:update-snapshots
+bun run test:update-snapshots
 
 # View test report
-bun report
+bun run report
 ```
+
+#### Running Tests for Specific Browsers
+
+If you have issues with certain browsers (e.g., WebKit/Safari dependencies), you can run tests for specific browsers only:
+
+```bash
+# Run only Chromium tests (recommended for quick verification)
+bunx playwright test --project=chromium
+
+# Run only Firefox tests
+bunx playwright test --project=firefox
+
+# Run only desktop browsers (skip mobile)
+bunx playwright test --project=chromium --project=firefox --project=webkit
+
+# Run specific test file
+bunx playwright test tests/map-render.spec.ts
+```
+
+#### Troubleshooting E2E Tests
+
+**"Host system is missing dependencies to run browsers"**
+- Install browser dependencies: `sudo npx playwright install-deps`
+- Or skip problematic browsers: `bunx playwright test --project=chromium`
+
+**"Playwright Test did not expect test.describe() to be called here"**
+- You used `bun test` instead of `bun run test`. The correct command is `bun run test`.
+
+**Tests timeout or fail on first run**
+- The showcase app needs time to build. Try running again - the server may not have been ready.
+
+**Visual regression tests fail**
+- If you intentionally changed the UI, update snapshots: `bun run test:update-snapshots`
 
 ## Code Quality
 
@@ -101,4 +159,4 @@ Before submitting a PR:
 - [ ] `cargo fmt --check` passes
 - [ ] `cargo clippy` has no warnings
 - [ ] Showcase app works (manual check)
-- [ ] E2E tests pass (if you have Bun installed)
+- [ ] E2E tests pass: `cd e2e && bun run test` (or at minimum: `bunx playwright test --project=chromium`)
