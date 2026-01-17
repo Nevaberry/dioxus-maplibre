@@ -10,6 +10,7 @@
     "fetch-fixtures": "bun run scripts/fetch-fixtures.ts",
     "fetch-fixtures:full": "bun run scripts/fetch-fixtures.ts --full",
     "fetch-fixtures:resume": "bun run scripts/fetch-fixtures.ts --resume",
+    "fetch-assets": "bun run scripts/fetch-assets.ts",
     "clean-fixtures": "bun run scripts/clean-fixtures.ts",
     "typecheck": "tsc --noEmit"
   },

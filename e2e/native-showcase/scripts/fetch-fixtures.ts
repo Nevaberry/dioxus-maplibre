@@ -244,6 +244,26 @@ async function downloadFixtures(resume = false) {
                   .then(buffer => writeFile(join(testDir, "expected.png"), buffer))
               );
             }
+
+            // Download subdirectories (like image/) that contain fixture-specific assets
+            const subDirs = files.filter((f) => f.type === "dir");
+            for (const subDir of subDirs) {
+              try {
+                const subFiles = await fetchGitHubDirectory(subDir.path);
+                const subDirPath = join(testDir, subDir.name);
+                await mkdir(subDirPath, { recursive: true });
+
+                for (const subFile of subFiles.filter((f) => f.type === "file" && f.download_url)) {
+                  downloads.push(
+                    fetchBinary(subFile.download_url!, `${category.name}/${test.name}/${subDir.name}/${subFile.name}`)
+                      .then(buffer => writeFile(join(subDirPath, subFile.name), buffer))
+                  );
+                }
+              } catch {
+                // Subdirectory download failed, not critical
+              }
+            }
+
             await Promise.all(downloads);
             return test.name;
           }
