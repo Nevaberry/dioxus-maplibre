@@ -3,6 +3,10 @@
 //! This module generates the JavaScript code needed to interact with MapLibre GL JS.
 //! Maps are stored in `window.__dioxus_maplibre_maps[map_id]` for lifecycle management.
 
+// These functions generate JS strings and are only called on wasm32 targets.
+// On other targets they appear unused but we keep them available for testing.
+#![allow(dead_code)]
+
 use uuid::Uuid;
 
 /// Generate a unique map ID
@@ -218,12 +222,11 @@ pub fn add_marker_js(
             r#"
             const el = document.createElement('div');
             el.className = 'maplibre-marker-emoji';
-            el.innerHTML = '{}';
+            el.innerHTML = '{e}';
             el.style.fontSize = '28px';
             el.style.cursor = 'pointer';
             el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))';
-            "#,
-            e
+            "#
         ),
         None => String::new(),
     };

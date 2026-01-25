@@ -33,13 +33,16 @@ pub struct GeoJsonSourceProps {
 #[component]
 pub fn GeoJsonSource(props: GeoJsonSourceProps) -> Element {
     // Get map context from parent
+    #[allow(unused_variables)] // only used on wasm32
     let ctx = use_context::<MapContext>();
 
     // Track whether source has been added
+    #[allow(unused_variables, unused_mut)] // only used on wasm32
     let mut source_added = use_signal(|| false);
 
     // Track previous data for change detection
-    let mut prev_data = use_signal(|| String::new());
+    #[allow(unused_variables, unused_mut)] // only used on wasm32
+    let mut prev_data = use_signal(String::new);
 
     // Only do JS interop on wasm targets
     #[cfg(target_arch = "wasm32")]

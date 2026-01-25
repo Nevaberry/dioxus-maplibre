@@ -63,7 +63,8 @@ pub struct LayerHoverEvent {
 /// Internal event enum for communication from JS
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub(crate) enum MapEvent {
+#[allow(dead_code)] // Reserved for future typed event parsing
+pub enum MapEvent {
     #[serde(rename = "click")]
     Click(MapClickEvent),
     #[serde(rename = "marker_click")]

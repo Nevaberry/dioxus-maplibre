@@ -82,8 +82,8 @@ impl Bounds {
     /// Get the center of the bounds
     pub fn center(&self) -> LatLng {
         LatLng {
-            lat: (self.sw.lat + self.ne.lat) / 2.0,
-            lng: (self.sw.lng + self.ne.lng) / 2.0,
+            lat: f64::midpoint(self.sw.lat, self.ne.lat),
+            lng: f64::midpoint(self.sw.lng, self.ne.lng),
         }
     }
 }

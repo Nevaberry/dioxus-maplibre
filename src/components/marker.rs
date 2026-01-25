@@ -31,9 +31,11 @@ pub struct MarkerProps {
 #[component]
 pub fn Marker(props: MarkerProps) -> Element {
     // Get map context from parent
+    #[allow(unused_variables)] // only used on wasm32
     let ctx = use_context::<MapContext>();
 
     // Generate marker ID if not provided
+    #[allow(unused_variables)] // only used on wasm32
     let marker_id = use_hook(|| {
         props.id.clone().unwrap_or_else(|| {
             format!("marker_{}", uuid::Uuid::new_v4().to_string().replace('-', ""))

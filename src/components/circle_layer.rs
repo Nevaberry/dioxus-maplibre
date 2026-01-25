@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 use crate::context::MapContext;
 
 /// Props for the CircleLayer component
-#[derive(Props, Clone, PartialEq)]
+#[derive(Props, Clone, PartialEq, Eq)]
 pub struct CircleLayerProps {
     /// Unique layer ID
     pub id: String,
@@ -39,11 +39,14 @@ pub struct CircleLayerProps {
 /// }
 /// ```
 #[component]
+#[allow(unused_variables)] // props only used on wasm32
 pub fn CircleLayer(props: CircleLayerProps) -> Element {
     // Get map context from parent
+    #[allow(unused_variables)] // only used on wasm32
     let ctx = use_context::<MapContext>();
 
     // Track whether layer has been added
+    #[allow(unused_variables, unused_mut)] // only used on wasm32
     let mut layer_added = use_signal(|| false);
 
     // Only do JS interop on wasm targets

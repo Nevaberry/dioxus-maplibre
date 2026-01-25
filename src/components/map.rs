@@ -78,14 +78,16 @@ pub fn Map(props: MapProps) -> Element {
     let container_id = format!("{map_id}_container");
 
     // Track if map is ready
+    #[allow(unused_mut)] // mut needed only on wasm32
     let mut is_ready = use_signal(|| false);
 
     // Track if initialization has been started (to prevent multiple inits)
+    #[allow(unused_variables, unused_mut)] // only used on wasm32
     let mut init_started = use_signal(|| false);
 
     // Create context for child components
     let ctx = MapContext {
-        map_id: map_id.clone(),
+        map_id,
         is_ready,
     };
     use_context_provider(|| ctx);

@@ -1,12 +1,31 @@
 [package]
 name = "dioxus-maplibre"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 description = "MapLibre GL JS wrapper for Dioxus 0.7"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Nevaberry/dioxus-maplibre"
 keywords = ["dioxus", "maplibre", "maps", "gis", "wasm"]
 categories = ["gui", "wasm", "web-programming"]
+exclude = ["e2e/", "examples/", "temp/", "test-results/", ".github/"]
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+needless_raw_string_hashes = "allow"
+doc_markdown = "allow"
+missing_const_for_fn = "allow"
+suboptimal_flops = "allow"
+too_many_lines = "allow"
+option_if_let_else = "allow"
+pub_with_shorthand = "allow"
+redundant_pub_crate = "allow"
 
 [dependencies]
 dioxus = "0.7"

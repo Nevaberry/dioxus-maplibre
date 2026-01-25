@@ -2,4 +2,4 @@
 
 mod bridge;
 
-pub(crate) use bridge::*;
+pub use bridge::*;
