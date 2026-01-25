@@ -44,7 +44,7 @@ pub fn init_map_js(
             let attempts = 0;
             const maxAttempts = 100;
             while (typeof maplibregl === 'undefined' && attempts < maxAttempts) {{
-                if (attempts % 10 === 0) console.log('[dioxus-maplibre] Waiting for maplibregl... attempt', attempts + 1);
+                if (attempts % 10 === 0) console.log(`[dioxus-maplibre] Waiting for maplibregl... attempt ${{attempts + 1}}`);
                 await new Promise(resolve => setTimeout(resolve, 100));
                 attempts++;
             }}
@@ -62,7 +62,7 @@ pub fn init_map_js(
             let containerAttempts = 0;
 
             while (!container && containerAttempts < 50) {{
-                if (containerAttempts % 10 === 0) console.log('[dioxus-maplibre] Waiting for container by ID...', containerAttempts);
+                if (containerAttempts % 10 === 0) console.log(`[dioxus-maplibre] Waiting for container by ID... ${{containerAttempts}}`);
                 await new Promise(resolve => requestAnimationFrame(resolve));
                 container = document.getElementById('{container_id}');
                 containerAttempts++;
@@ -94,7 +94,7 @@ pub fn init_map_js(
 
             // Use the actual container ID for map storage (may differ from map_id due to remounting)
             const actualContainerId = container.id;
-            console.log('[dioxus-maplibre] Container found:', actualContainerId, container.offsetWidth, 'x', container.offsetHeight);
+            console.log(`[dioxus-maplibre] Container found: ${{actualContainerId}} ${{container.offsetWidth}}x${{container.offsetHeight}}`);
 
             // Ensure registry exists
             if (!window.__dioxus_maplibre_maps) {{
@@ -436,7 +436,7 @@ pub fn add_geojson_source_js(map_id: &str, source_id: &str, geojson: &str) -> St
                     type: 'geojson',
                     data: data
                 }});
-                console.log('[dioxus-maplibre] Added GeoJSON source:', '{source_id}', 'with', data.features?.length || 0, 'features');
+                console.log(`[dioxus-maplibre] Added GeoJSON source: {source_id} with ${{data.features?.length || 0}} features`);
 
                 // Track in registry
                 if (!window.__dioxus_maplibre_sources['{map_id}']) {{
@@ -470,7 +470,7 @@ pub fn update_geojson_source_js(map_id: &str, source_id: &str, geojson: &str) ->
                 try {{
                     const data = {geojson};
                     source.setData(data);
-                    console.log('[dioxus-maplibre] Updated source:', '{source_id}', 'with', data.features?.length || 0, 'features');
+                    console.log(`[dioxus-maplibre] Updated source: {source_id} with ${{data.features?.length || 0}} features`);
                 }} catch (err) {{
                     console.error('[dioxus-maplibre] Failed to update source:', err);
                 }}
@@ -555,7 +555,7 @@ pub fn add_layer_js(
                     paint: {paint},
                     layout: {layout}
                 }});
-                console.log('[dioxus-maplibre] Added layer:', '{layer_id}', 'type:', '{layer_type}');
+                console.log(`[dioxus-maplibre] Added layer: {layer_id} type: {layer_type}`);
 
                 // Track in registry
                 if (!window.__dioxus_maplibre_layers['{map_id}']) {{
