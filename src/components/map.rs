@@ -87,7 +87,7 @@ pub fn Map(props: MapProps) -> Element {
 
     // Create context for child components
     let ctx = MapContext {
-        map_id,
+        map_id: map_id.clone(),
         is_ready,
     };
     use_context_provider(|| ctx);

@@ -1,3 +1,7 @@
+# AI local settings
+.claude
+.agents
+
 # will have compiled files and executables
 debug
 target
