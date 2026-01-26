@@ -160,45 +160,45 @@ pub fn Map(props: MapProps) -> Element {
                                             is_ready.set(true);
                                         }
                                         Some("click") => {
-                                            if let Ok(click_event) = serde_json::from_value::<MapClickEvent>(event.clone()) {
-                                                if let Some(handler) = &on_click {
-                                                    handler.call(click_event);
-                                                }
+                                            if let Ok(click_event) = serde_json::from_value::<MapClickEvent>(event.clone())
+                                                && let Some(handler) = &on_click
+                                            {
+                                                handler.call(click_event);
                                             }
                                         }
                                         Some("marker_click") => {
-                                            if let Ok(marker_event) = serde_json::from_value::<MarkerClickEvent>(event.clone()) {
-                                                if let Some(handler) = &on_marker_click {
-                                                    handler.call(marker_event);
-                                                }
+                                            if let Ok(marker_event) = serde_json::from_value::<MarkerClickEvent>(event.clone())
+                                                && let Some(handler) = &on_marker_click
+                                            {
+                                                handler.call(marker_event);
                                             }
                                         }
                                         Some("marker_hover") => {
-                                            if let Ok(hover_event) = serde_json::from_value::<MarkerHoverEvent>(event.clone()) {
-                                                if let Some(handler) = &on_marker_hover {
-                                                    handler.call(hover_event);
-                                                }
+                                            if let Ok(hover_event) = serde_json::from_value::<MarkerHoverEvent>(event.clone())
+                                                && let Some(handler) = &on_marker_hover
+                                            {
+                                                handler.call(hover_event);
                                             }
                                         }
                                         Some("move") => {
-                                            if let Ok(move_event) = serde_json::from_value::<MapMoveEvent>(event.clone()) {
-                                                if let Some(handler) = &on_move {
-                                                    handler.call(move_event);
-                                                }
+                                            if let Ok(move_event) = serde_json::from_value::<MapMoveEvent>(event.clone())
+                                                && let Some(handler) = &on_move
+                                            {
+                                                handler.call(move_event);
                                             }
                                         }
                                         Some("layer_click") => {
-                                            if let Ok(layer_event) = serde_json::from_value::<LayerClickEvent>(event.clone()) {
-                                                if let Some(handler) = &on_layer_click {
-                                                    handler.call(layer_event);
-                                                }
+                                            if let Ok(layer_event) = serde_json::from_value::<LayerClickEvent>(event.clone())
+                                                && let Some(handler) = &on_layer_click
+                                            {
+                                                handler.call(layer_event);
                                             }
                                         }
                                         Some("layer_hover") => {
-                                            if let Ok(layer_event) = serde_json::from_value::<LayerHoverEvent>(event.clone()) {
-                                                if let Some(handler) = &on_layer_hover {
-                                                    handler.call(layer_event);
-                                                }
+                                            if let Ok(layer_event) = serde_json::from_value::<LayerHoverEvent>(event.clone())
+                                                && let Some(handler) = &on_layer_hover
+                                            {
+                                                handler.call(layer_event);
                                             }
                                         }
                                         _ => {}

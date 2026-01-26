@@ -838,7 +838,7 @@ dependencies = [
 
 [[package]]
 name = "dioxus-maplibre"
-version = "0.0.1"
+version = "0.0.3"
 dependencies = [
  "dioxus",
  "serde",

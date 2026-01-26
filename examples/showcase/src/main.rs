@@ -10,6 +10,17 @@ use dioxus_maplibre::{
     fly_to,
 };
 
+/// Application state using Dioxus 0.7 Stores for granular reactivity.
+/// Each field can be subscribed to independently, so changing `map_zoom`
+/// won't re-render components that only read `last_click`.
+#[derive(Store, Clone)]
+struct AppState {
+    last_click: Option<LatLng>,
+    map_center: LatLng,
+    map_zoom: f64,
+    clicked_marker: Option<String>,
+}
+
 // Static marker data: (id, name, lat, lng)
 const MARKERS: &[(&str, &str, f64, f64)] = &[
     ("helsinki", "Helsinki", 60.1699, 24.9384),
@@ -23,15 +34,19 @@ fn main() {
 }
 
 fn App() -> Element {
-    // Track click position for display
-    let mut last_click = use_signal(|| None::<LatLng>);
+    // App state using Store for granular reactivity
+    let state = use_hook(|| Store::new(AppState {
+        last_click: None,
+        map_center: LatLng::helsinki(),
+        map_zoom: 10.0,
+        clicked_marker: None,
+    }));
 
-    // Track map position
-    let mut map_center = use_signal(|| LatLng::helsinki());
-    let mut map_zoom = use_signal(|| 10.0_f64);
-
-    // Track clicked marker
-    let mut clicked_marker = use_signal(|| None::<String>);
+    // Access individual fields with granular subscriptions
+    let mut last_click = state.last_click();
+    let mut map_center = state.map_center();
+    let mut map_zoom = state.map_zoom();
+    let mut clicked_marker = state.clicked_marker();
 
     rsx! {
         div {
