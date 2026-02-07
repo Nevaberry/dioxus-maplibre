@@ -14,13 +14,13 @@ pub fn Terrain() -> Element {
             div { style: "flex: 1; position: relative;",
                 Map {
                     style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-                    center: LatLng::new(46.87, 8.15),
-                    zoom: 8.0,
-                    pitch: 45.0,
+                    center: LatLng::new(47.27, 11.39),
+                    zoom: 12.0,
+                    pitch: 70.0,
                     on_ready: move |handle: MapHandle| {
                         handle.add_navigation_control(ControlPosition::TopRight);
 
-                        // Add terrain DEM source
+                        // Add terrain DEM source (demo tiles cover Innsbruck area)
                         handle.add_raster_dem_source("terrain-dem", RasterDemSourceOptions {
                             url: Some("https://demotiles.maplibre.org/terrain-tiles/tiles.json".into()),
                             tile_size: Some(256),
@@ -34,7 +34,7 @@ pub fn Terrain() -> Element {
             div { style: "width: 280px; background: #16213e; color: #e0e0e0; padding: 16px; font-size: 13px;",
                 h3 { style: "margin: 0 0 12px 0;", "Terrain" }
                 p { "3D terrain with raster DEM source." }
-                p { "Location: Swiss Alps" }
+                p { "Location: Innsbruck, Austrian Alps" }
 
                 if let Some(ref map) = *map_handle.read() {
                     div { style: "display: flex; flex-direction: column; gap: 8px; margin-top: 16px;",
@@ -66,15 +66,15 @@ pub fn Terrain() -> Element {
                                     style: "padding: 8px; border-radius: 4px; border: none; background: #6366f1; color: white; cursor: pointer;",
                                     onclick: move |_| {
                                         map.fly_to(FlyToOptions {
-                                            center: Some(LatLng::new(46.57, 7.99)),
-                                            zoom: Some(13.0),
-                                            pitch: Some(70.0),
+                                            center: Some(LatLng::new(47.37, 11.10)),
+                                            zoom: Some(14.0),
+                                            pitch: Some(76.0),
                                             bearing: Some(160.0),
                                             essential: Some(true),
                                             ..Default::default()
                                         });
                                     },
-                                    "Fly to Jungfrau"
+                                    "Fly to Nordkette"
                                 }
                             }
                         }
