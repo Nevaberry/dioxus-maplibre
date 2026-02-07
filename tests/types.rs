@@ -1,6 +1,6 @@
 //! Unit tests for geographic types
 
-use dioxus_maplibre::{LatLng, MapPosition, Bounds, Point};
+use dioxus_maplibre::{LatLng, MapPosition, Bounds, Point, QueryFeature};
 
 #[test]
 fn latlng_new() {
@@ -143,4 +143,32 @@ fn point_equality() {
     let c = Point::new(100.0, 201.0);
     assert_eq!(a, b);
     assert_ne!(a, c);
+}
+
+#[test]
+fn query_feature_deserialize() {
+    let json = r#"{
+        "id": 42,
+        "geometry": {"type": "Point", "coordinates": [24.94, 60.17]},
+        "properties": {"name": "Helsinki"},
+        "source": "cities",
+        "sourceLayer": "places"
+    }"#;
+    let feature: QueryFeature = serde_json::from_str(json).unwrap();
+    assert_eq!(feature.id, Some(42));
+    assert_eq!(feature.source, "cities");
+    assert_eq!(feature.source_layer.as_deref(), Some("places"));
+}
+
+#[test]
+fn query_feature_without_optional_fields() {
+    let json = r#"{
+        "geometry": {"type": "Point", "coordinates": [24.94, 60.17]},
+        "properties": {},
+        "source": "my-source"
+    }"#;
+    let feature: QueryFeature = serde_json::from_str(json).unwrap();
+    assert_eq!(feature.id, None);
+    assert_eq!(feature.source_layer, None);
+    assert_eq!(feature.source, "my-source");
 }

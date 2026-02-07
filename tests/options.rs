@@ -5,7 +5,7 @@ use dioxus_maplibre::{
     GeoJsonSourceOptions, VectorSourceOptions, RasterSourceOptions,
     RasterDemSourceOptions, LayerOptions, MarkerOptions, PopupOptions,
     FlyToOptions, EaseToOptions, JumpToOptions, FitBoundsOptions,
-    TerrainOptions, SkyOptions, FeatureIdentifier,
+    TerrainOptions, SkyOptions, FeatureIdentifier, QueryOptions,
     LatLng,
 };
 use serde_json::json;
@@ -290,4 +290,23 @@ fn feature_identifier_without_source_layer() {
     };
     let json = serde_json::to_string(&feat).unwrap();
     assert!(!json.contains("sourceLayer"));
+}
+
+#[test]
+fn query_options_default_empty() {
+    let opts = QueryOptions::default();
+    let json = serde_json::to_string(&opts).unwrap();
+    assert_eq!(json, "{}");
+}
+
+#[test]
+fn query_options_with_layers_and_filter() {
+    let opts = QueryOptions {
+        layers: Some(vec!["circles".to_string(), "lines".to_string()]),
+        filter: Some(json!(["==", ["get", "active"], true])),
+    };
+    let json = serde_json::to_string(&opts).unwrap();
+    assert!(json.contains("circles"));
+    assert!(json.contains("lines"));
+    assert!(json.contains("active"));
 }

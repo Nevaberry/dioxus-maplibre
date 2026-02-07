@@ -88,6 +88,24 @@ impl Bounds {
     }
 }
 
+/// A feature returned by query methods (`queryRenderedFeatures`, `querySourceFeatures`)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryFeature {
+    /// Feature ID (numeric, if present)
+    #[serde(default)]
+    pub id: Option<i64>,
+    /// GeoJSON geometry
+    pub geometry: serde_json::Value,
+    /// Feature properties
+    pub properties: serde_json::Value,
+    /// Source ID
+    pub source: String,
+    /// Source layer (for vector tile sources)
+    #[serde(default)]
+    pub source_layer: Option<String>,
+}
+
 /// A point in screen pixel coordinates
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
 pub struct Point {

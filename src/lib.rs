@@ -37,12 +37,12 @@ mod interop;
 pub mod components;
 
 // Re-export public API — Types
-pub use types::{LatLng, MapPosition, Bounds, Point};
+pub use types::{LatLng, MapPosition, Bounds, Point, QueryFeature};
 
 // Re-export public API — Events
 pub use events::{
     MapClickEvent, MapDblClickEvent, MapContextMenuEvent,
-    MarkerClickEvent, MarkerHoverEvent,
+    MarkerClickEvent, MarkerHoverEvent, MarkerDragStartEvent, MarkerDragEndEvent,
     MapMoveEvent, MapZoomEvent, MapRotateEvent, MapPitchEvent,
     LayerClickEvent, LayerHoverEvent,
 };
@@ -54,7 +54,7 @@ pub use options::{
     RasterDemSourceOptions, ImageSourceOptions,
     LayerOptions, MarkerOptions, PopupOptions,
     FlyToOptions, EaseToOptions, JumpToOptions, FitBoundsOptions,
-    TerrainOptions, SkyOptions, FeatureIdentifier,
+    TerrainOptions, SkyOptions, FeatureIdentifier, QueryOptions,
 };
 
 // Re-export public API — Handle & Component

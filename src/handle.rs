@@ -36,10 +36,10 @@
 use crate::options::{
     ControlPosition, EaseToOptions, FeatureIdentifier, FitBoundsOptions, FlyToOptions,
     GeoJsonSourceOptions, ImageSourceOptions, JumpToOptions, LayerOptions, MarkerOptions,
-    PopupOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions, TerrainOptions,
-    VectorSourceOptions,
+    PopupOptions, QueryOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions,
+    TerrainOptions, VectorSourceOptions,
 };
-use crate::types::{Bounds, LatLng};
+use crate::types::{Bounds, LatLng, QueryFeature};
 
 /// A handle to a MapLibre map instance
 ///
@@ -376,6 +376,32 @@ impl MapHandle {
         self.fire_and_forget(|| crate::interop::load_image_js(&self.map_id, id, url));
     }
 
+    /// Load an image and wait for it to complete (returns true on success)
+    #[cfg(target_arch = "wasm32")]
+    pub async fn load_image_async(&self, id: &str, url: &str) -> bool {
+        let js = crate::interop::load_image_async_js(&self.map_id, id, url);
+        document::eval(&js).join::<bool>().await.unwrap_or(false)
+    }
+
+    /// Load an image and wait for it to complete (returns true on success)
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn load_image_async(&self, _id: &str, _url: &str) -> bool {
+        false
+    }
+
+    /// Check if an image exists in the map's sprite
+    #[cfg(target_arch = "wasm32")]
+    pub async fn has_image(&self, id: &str) -> bool {
+        let js = crate::interop::has_image_js(&self.map_id, id);
+        document::eval(&js).join::<bool>().await.unwrap_or(false)
+    }
+
+    /// Check if an image exists in the map's sprite
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn has_image(&self, _id: &str) -> bool {
+        false
+    }
+
     /// Remove an image from the map's sprite
     pub fn remove_image(&self, id: &str) {
         self.fire_and_forget(|| crate::interop::remove_image_js(&self.map_id, id));
@@ -432,6 +458,75 @@ impl MapHandle {
     /// Register hover handlers on a layer (events dispatched via on_layer_hover)
     pub fn on_layer_hover(&self, layer_id: &str) {
         self.fire_and_forget(|| crate::interop::register_layer_hover_js(&self.map_id, layer_id));
+    }
+
+    // =========================================================================
+    // Feature Queries
+    // =========================================================================
+
+    /// Query rendered features in the entire viewport
+    #[cfg(target_arch = "wasm32")]
+    pub async fn query_rendered_features(&self, options: QueryOptions) -> Vec<QueryFeature> {
+        let json = serde_json::to_string(&options).unwrap_or_default();
+        let js = crate::interop::query_rendered_features_js(&self.map_id, &json);
+        document::eval(&js)
+            .join::<Vec<QueryFeature>>()
+            .await
+            .unwrap_or_default()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn query_rendered_features(&self, _options: QueryOptions) -> Vec<QueryFeature> {
+        Vec::new()
+    }
+
+    /// Query rendered features at a screen point
+    #[cfg(target_arch = "wasm32")]
+    pub async fn query_rendered_features_at(
+        &self,
+        point: crate::types::Point,
+        options: QueryOptions,
+    ) -> Vec<QueryFeature> {
+        let json = serde_json::to_string(&options).unwrap_or_default();
+        let js =
+            crate::interop::query_rendered_features_at_js(&self.map_id, point.x, point.y, &json);
+        document::eval(&js)
+            .join::<Vec<QueryFeature>>()
+            .await
+            .unwrap_or_default()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn query_rendered_features_at(
+        &self,
+        _point: crate::types::Point,
+        _options: QueryOptions,
+    ) -> Vec<QueryFeature> {
+        Vec::new()
+    }
+
+    /// Query all features in a source
+    #[cfg(target_arch = "wasm32")]
+    pub async fn query_source_features(
+        &self,
+        source_id: &str,
+        options: QueryOptions,
+    ) -> Vec<QueryFeature> {
+        let json = serde_json::to_string(&options).unwrap_or_default();
+        let js = crate::interop::query_source_features_js(&self.map_id, source_id, &json);
+        document::eval(&js)
+            .join::<Vec<QueryFeature>>()
+            .await
+            .unwrap_or_default()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn query_source_features(
+        &self,
+        _source_id: &str,
+        _options: QueryOptions,
+    ) -> Vec<QueryFeature> {
+        Vec::new()
     }
 
     // =========================================================================

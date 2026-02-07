@@ -746,6 +746,30 @@ pub fn add_marker_js(
                 }}
             }});
 
+            // Drag handlers (only if marker is draggable)
+            if (opts.draggable) {{
+                marker.on('dragstart', function() {{
+                    const lngLat = marker.getLngLat();
+                    if (window.__dioxus_maplibre_sendEvent) {{
+                        window.__dioxus_maplibre_sendEvent(JSON.stringify({{
+                            type: 'marker_dragstart',
+                            marker_id: '{marker_id}',
+                            latlng: {{ lat: lngLat.lat, lng: lngLat.lng }}
+                        }}));
+                    }}
+                }});
+                marker.on('dragend', function() {{
+                    const lngLat = marker.getLngLat();
+                    if (window.__dioxus_maplibre_sendEvent) {{
+                        window.__dioxus_maplibre_sendEvent(JSON.stringify({{
+                            type: 'marker_dragend',
+                            marker_id: '{marker_id}',
+                            latlng: {{ lat: lngLat.lat, lng: lngLat.lng }}
+                        }}));
+                    }}
+                }});
+            }}
+
             // Hover handlers
             marker.getElement().addEventListener('mouseenter', function(e) {{
                 if (window.__dioxus_maplibre_sendEvent) {{
@@ -1116,6 +1140,28 @@ pub fn has_image_js(map_id: &str, image_id: &str) -> String {
     )
 }
 
+/// Generate JS to load an image and return success via dioxus.send
+pub fn load_image_async_js(map_id: &str, image_id: &str, url: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (async function() {{
+            {find}
+            try {{
+                const response = await map.loadImage('{url}');
+                if (!map.hasImage('{image_id}')) {{
+                    map.addImage('{image_id}', response.data);
+                }}
+                return true;
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to load image:', err);
+                return false;
+            }}
+        }})();
+        "#
+    )
+}
+
 /// Generate JS to remove an image from the map's sprite
 pub fn remove_image_js(map_id: &str, image_id: &str) -> String {
     let find = find_map_js(map_id);
@@ -1273,6 +1319,88 @@ pub fn get_bounds_js(map_id: &str) -> String {
                 sw: {{ lat: b.getSouth(), lng: b.getWest() }},
                 ne: {{ lat: b.getNorth(), lng: b.getEast() }}
             }};
+        }})();
+        "#
+    )
+}
+
+// =============================================================================
+// Feature Queries
+// =============================================================================
+
+/// Generate JS to query rendered features (entire viewport)
+pub fn query_rendered_features_js(map_id: &str, options_json: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            try {{
+                const opts = {options_json};
+                const features = map.queryRenderedFeatures(opts);
+                return features.map(f => ({{
+                    id: f.id !== undefined ? f.id : null,
+                    geometry: f.geometry,
+                    properties: f.properties || {{}},
+                    source: f.source,
+                    sourceLayer: f.sourceLayer || null
+                }}));
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to query rendered features:', err);
+                return [];
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to query rendered features at a screen point
+pub fn query_rendered_features_at_js(map_id: &str, x: f64, y: f64, options_json: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            try {{
+                const opts = {options_json};
+                const features = map.queryRenderedFeatures([{x}, {y}], opts);
+                return features.map(f => ({{
+                    id: f.id !== undefined ? f.id : null,
+                    geometry: f.geometry,
+                    properties: f.properties || {{}},
+                    source: f.source,
+                    sourceLayer: f.sourceLayer || null
+                }}));
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to query rendered features at point:', err);
+                return [];
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to query source features
+pub fn query_source_features_js(map_id: &str, source_id: &str, options_json: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            try {{
+                const opts = {options_json};
+                const features = map.querySourceFeatures('{source_id}', opts);
+                return features.map(f => ({{
+                    id: f.id !== undefined ? f.id : null,
+                    geometry: f.geometry,
+                    properties: f.properties || {{}},
+                    source: '{source_id}',
+                    sourceLayer: f.sourceLayer || null
+                }}));
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to query source features:', err);
+                return [];
+            }}
         }})();
         "#
     )

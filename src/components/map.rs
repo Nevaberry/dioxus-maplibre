@@ -4,7 +4,8 @@ use dioxus::prelude::*;
 
 use crate::events::{
     LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerHoverEvent,
+    MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
+    MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
 };
 use crate::handle::MapHandle;
 use crate::interop::generate_map_id;
@@ -76,6 +77,14 @@ pub struct MapProps {
     /// Called when hovering over a marker
     #[props(optional)]
     pub on_marker_hover: Option<EventHandler<MarkerHoverEvent>>,
+
+    /// Called when a draggable marker starts being dragged
+    #[props(optional)]
+    pub on_marker_dragstart: Option<EventHandler<MarkerDragStartEvent>>,
+
+    /// Called when a draggable marker is dropped after dragging
+    #[props(optional)]
+    pub on_marker_dragend: Option<EventHandler<MarkerDragEndEvent>>,
 
     /// Called when the map view changes (pan/zoom/rotate/pitch)
     #[props(optional)]
@@ -154,6 +163,8 @@ pub fn Map(props: MapProps) -> Element {
         let on_contextmenu = props.on_contextmenu;
         let on_marker_click = props.on_marker_click;
         let on_marker_hover = props.on_marker_hover;
+        let on_marker_dragstart = props.on_marker_dragstart;
+        let on_marker_dragend = props.on_marker_dragend;
         let on_move = props.on_move;
         let on_zoom = props.on_zoom;
         let on_rotate = props.on_rotate;
@@ -250,6 +261,20 @@ pub fn Map(props: MapProps) -> Element {
                                         Some("marker_hover") => {
                                             if let Ok(e) = serde_json::from_value::<MarkerHoverEvent>(event.clone())
                                                 && let Some(handler) = &on_marker_hover
+                                            {
+                                                handler.call(e);
+                                            }
+                                        }
+                                        Some("marker_dragstart") => {
+                                            if let Ok(e) = serde_json::from_value::<MarkerDragStartEvent>(event.clone())
+                                                && let Some(handler) = &on_marker_dragstart
+                                            {
+                                                handler.call(e);
+                                            }
+                                        }
+                                        Some("marker_dragend") => {
+                                            if let Ok(e) = serde_json::from_value::<MarkerDragEndEvent>(event.clone())
+                                                && let Some(handler) = &on_marker_dragend
                                             {
                                                 handler.call(e);
                                             }

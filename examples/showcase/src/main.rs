@@ -30,6 +30,10 @@ enum Route {
     StyleSwitcher {},
     #[route("/eval")]
     EvalDemo {},
+    #[route("/heatmap")]
+    Heatmap {},
+    #[route("/symbols")]
+    Symbols {},
 }
 
 #[component]
@@ -50,6 +54,8 @@ fn AppLayout() -> Element {
                 NavLink { to: Route::Terrain {}, label: "Terrain" }
                 NavLink { to: Route::StyleSwitcher {}, label: "Style" }
                 NavLink { to: Route::EvalDemo {}, label: "Eval" }
+                NavLink { to: Route::Heatmap {}, label: "Heatmap" }
+                NavLink { to: Route::Symbols {}, label: "Symbols" }
             }
             div {
                 style: "flex: 1; position: relative;",

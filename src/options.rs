@@ -503,6 +503,19 @@ pub struct TerrainOptions {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SkyOptions(pub serde_json::Value);
 
+/// Options for querying rendered or source features
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryOptions {
+    /// Restrict query to specific layer IDs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub layers: Option<Vec<String>>,
+
+    /// Filter expression to apply
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filter: Option<serde_json::Value>,
+}
+
 /// Identifies a feature for feature state operations
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

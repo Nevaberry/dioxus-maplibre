@@ -8,6 +8,8 @@ mod interaction;
 mod terrain;
 mod style;
 mod eval;
+mod heatmap;
+mod symbols;
 
 pub use basic::Basic;
 pub use markers::Markers;
@@ -19,3 +21,5 @@ pub use interaction::Interaction;
 pub use terrain::Terrain;
 pub use style::StyleSwitcher;
 pub use eval::EvalDemo;
+pub use heatmap::Heatmap;
+pub use symbols::Symbols;

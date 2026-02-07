@@ -2,7 +2,7 @@
 
 use dioxus_maplibre::{
     MapClickEvent, MapDblClickEvent, MapContextMenuEvent,
-    MarkerClickEvent, MarkerHoverEvent,
+    MarkerClickEvent, MarkerHoverEvent, MarkerDragStartEvent, MarkerDragEndEvent,
     MapMoveEvent, MapZoomEvent, MapRotateEvent, MapPitchEvent,
     LatLng, Point,
 };
@@ -157,4 +157,40 @@ fn point_json_roundtrip() {
     let json = serde_json::to_string(&original).unwrap();
     let restored: Point = serde_json::from_str(&json).unwrap();
     assert_eq!(original, restored);
+}
+
+#[test]
+fn marker_dragstart_event_roundtrip() {
+    let event = MarkerDragStartEvent {
+        marker_id: "drag-1".to_string(),
+        latlng: LatLng::new(60.17, 24.94),
+    };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MarkerDragStartEvent = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.marker_id, "drag-1");
+    assert_eq!(restored.latlng.lat, 60.17);
+}
+
+#[test]
+fn marker_dragend_event_roundtrip() {
+    let event = MarkerDragEndEvent {
+        marker_id: "drag-2".to_string(),
+        latlng: LatLng::new(61.5, 23.79),
+    };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MarkerDragEndEvent = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.marker_id, "drag-2");
+    assert_eq!(restored.latlng.lng, 23.79);
+}
+
+#[test]
+fn marker_dragend_from_js_format() {
+    let json = r#"{
+        "marker_id": "m42",
+        "latlng": {"lat": 60.2, "lng": 24.8}
+    }"#;
+    let event: MarkerDragEndEvent = serde_json::from_str(json).unwrap();
+    assert_eq!(event.marker_id, "m42");
+    assert_eq!(event.latlng.lat, 60.2);
+    assert_eq!(event.latlng.lng, 24.8);
 }

@@ -54,6 +54,24 @@ pub struct MarkerHoverEvent {
     pub cursor_y: f64,
 }
 
+/// Event fired when a draggable marker starts being dragged
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkerDragStartEvent {
+    /// Marker ID
+    pub marker_id: String,
+    /// Geographic coordinates when drag started
+    pub latlng: LatLng,
+}
+
+/// Event fired when a draggable marker is dropped after dragging
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkerDragEndEvent {
+    /// Marker ID
+    pub marker_id: String,
+    /// Geographic coordinates where the marker was dropped
+    pub latlng: LatLng,
+}
+
 /// Event fired when the map view changes (pan/zoom)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MapMoveEvent {
@@ -132,6 +150,10 @@ pub enum MapEvent {
     MarkerClick(MarkerClickEvent),
     #[serde(rename = "marker_hover")]
     MarkerHover(MarkerHoverEvent),
+    #[serde(rename = "marker_dragstart")]
+    MarkerDragStart(MarkerDragStartEvent),
+    #[serde(rename = "marker_dragend")]
+    MarkerDragEnd(MarkerDragEndEvent),
     #[serde(rename = "move")]
     Move(MapMoveEvent),
     #[serde(rename = "zoom")]
