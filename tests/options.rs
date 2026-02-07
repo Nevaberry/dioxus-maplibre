@@ -5,7 +5,7 @@ use dioxus_maplibre::{
     GeoJsonSourceOptions, VectorSourceOptions, RasterSourceOptions,
     RasterDemSourceOptions, LayerOptions, MarkerOptions, PopupOptions,
     FlyToOptions, EaseToOptions, JumpToOptions, FitBoundsOptions,
-    TerrainOptions, SkyOptions, FeatureIdentifier, QueryOptions,
+    TerrainOptions, SkyOptions, FogOptions, FeatureIdentifier, QueryOptions,
     LatLng,
 };
 use serde_json::json;
@@ -266,6 +266,21 @@ fn sky_options_passthrough() {
     }));
     let json = serde_json::to_string(&opts).unwrap();
     assert!(json.contains("#199EF3"));
+}
+
+#[test]
+fn fog_options_passthrough() {
+    let opts = FogOptions(json!({
+        "color": "white",
+        "horizon-blend": 0.1,
+        "star-intensity": 0.5,
+        "range": [0.5, 10.0]
+    }));
+    let json = serde_json::to_string(&opts).unwrap();
+    assert!(json.contains("white"));
+    assert!(json.contains("horizon-blend"));
+    assert!(json.contains("star-intensity"));
+    assert!(json.contains("range"));
 }
 
 #[test]

@@ -2447,6 +2447,7 @@ version = "0.0.5"
 dependencies = [
  "dioxus",
  "dioxus-maplibre",
+ "gloo-timers",
  "serde_json",
  "tracing",
 ]

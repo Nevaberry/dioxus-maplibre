@@ -20,11 +20,13 @@ const CITIES: &[City] = &[
 pub fn Navigation() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
     let mut position = use_signal(|| String::from("--"));
+    let style: Signal<String> = use_context();
 
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(62.0, 25.0),
                     zoom: 5.0,
                     on_ready: move |handle: MapHandle| {

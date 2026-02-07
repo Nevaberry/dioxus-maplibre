@@ -6,11 +6,13 @@ use serde_json::json;
 pub fn Symbols() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
     let mut loaded = use_signal(|| false);
+    let style: Signal<String> = use_context();
 
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 12.0,
                     on_ready: move |handle: MapHandle| {

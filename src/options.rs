@@ -503,6 +503,13 @@ pub struct TerrainOptions {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SkyOptions(pub serde_json::Value);
 
+/// Options for setting fog/atmosphere (passthrough to MapLibre spec)
+///
+/// The fog spec supports color, horizon-blend, range, star-intensity, and more.
+/// Pass any valid MapLibre fog specification as a JSON value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FogOptions(pub serde_json::Value);
+
 /// Options for querying rendered or source features
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]

@@ -7,11 +7,13 @@ use serde_json::json;
 #[component]
 pub fn Sources() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
+    let style: Signal<String> = use_context();
 
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 11.0,
                     on_ready: move |handle: MapHandle| {

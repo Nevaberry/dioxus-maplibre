@@ -35,9 +35,9 @@
 
 use crate::options::{
     ControlPosition, EaseToOptions, FeatureIdentifier, FitBoundsOptions, FlyToOptions,
-    GeoJsonSourceOptions, ImageSourceOptions, JumpToOptions, LayerOptions, MarkerOptions,
-    PopupOptions, QueryOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions,
-    TerrainOptions, VectorSourceOptions,
+    FogOptions, GeoJsonSourceOptions, ImageSourceOptions, JumpToOptions, LayerOptions,
+    MarkerOptions, Padding, PopupOptions, QueryOptions, RasterDemSourceOptions,
+    RasterSourceOptions, SkyOptions, TerrainOptions, VectorSourceOptions,
 };
 use crate::types::{Bounds, LatLng, QueryFeature};
 
@@ -149,6 +149,16 @@ impl MapHandle {
         self.fire_and_forget(|| {
             let json = serde_json::to_string(&value).unwrap_or_default();
             crate::interop::set_layout_property_js(&self.map_id, layer_id, name, &json)
+        });
+    }
+
+    /// Move a layer to a different position in the layer stack
+    ///
+    /// If `before_id` is `Some`, the layer is moved before that layer.
+    /// If `before_id` is `None`, the layer is moved to the top.
+    pub fn move_layer(&self, layer_id: &str, before_id: Option<&str>) {
+        self.fire_and_forget(|| {
+            crate::interop::move_layer_js(&self.map_id, layer_id, before_id)
         });
     }
 
@@ -444,6 +454,44 @@ impl MapHandle {
     /// Remove sky
     pub fn remove_sky(&self) {
         self.fire_and_forget(|| crate::interop::remove_sky_js(&self.map_id));
+    }
+
+    /// Set fog/atmosphere properties
+    pub fn set_fog(&self, options: FogOptions) {
+        self.fire_and_forget(|| {
+            let json = serde_json::to_string(&options.0).unwrap_or_default();
+            crate::interop::set_fog_js(&self.map_id, &json)
+        });
+    }
+
+    /// Remove fog/atmosphere
+    pub fn remove_fog(&self) {
+        self.fire_and_forget(|| crate::interop::remove_fog_js(&self.map_id));
+    }
+
+    // =========================================================================
+    // Viewport Padding
+    // =========================================================================
+
+    /// Set viewport padding
+    pub fn set_padding(&self, padding: Padding) {
+        self.fire_and_forget(|| {
+            let json = serde_json::to_string(&padding).unwrap_or_default();
+            crate::interop::set_padding_js(&self.map_id, &json)
+        });
+    }
+
+    /// Get current viewport padding
+    #[cfg(target_arch = "wasm32")]
+    pub async fn get_padding(&self) -> Option<Padding> {
+        let js = crate::interop::get_padding_js(&self.map_id);
+        document::eval(&js).join::<Padding>().await.ok()
+    }
+
+    /// Get current viewport padding
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn get_padding(&self) -> Option<Padding> {
+        None
     }
 
     // =========================================================================

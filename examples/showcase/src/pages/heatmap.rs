@@ -25,11 +25,13 @@ fn generate_heatmap_data(center: LatLng, count: usize) -> serde_json::Value {
 pub fn Heatmap() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
     let mut intensity = use_signal(|| 1.0_f64);
+    let style: Signal<String> = use_context();
 
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 13.0,
                     on_ready: move |handle: MapHandle| {

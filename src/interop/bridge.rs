@@ -26,6 +26,7 @@ pub fn generate_map_id() -> String {
 ///
 /// Sets up the map with polling for MapLibre GL JS, container finding with
 /// hot-reload fallback, and event listeners for all supported event types.
+#[allow(clippy::too_many_arguments)]
 pub fn init_map_js(
     container_id: &str,
     map_id: &str,
@@ -38,6 +39,7 @@ pub fn init_map_js(
     min_zoom: Option<f64>,
     max_zoom: Option<f64>,
     max_bounds: Option<&str>,
+    cooperative_gestures: Option<bool>,
 ) -> String {
     let min_zoom_param = min_zoom
         .map(|z| format!("minZoom: {z},"))
@@ -47,6 +49,9 @@ pub fn init_map_js(
         .unwrap_or_default();
     let max_bounds_param = max_bounds
         .map(|b| format!("maxBounds: {b},"))
+        .unwrap_or_default();
+    let cooperative_gestures_param = cooperative_gestures
+        .map(|v| format!("cooperativeGestures: {v},"))
         .unwrap_or_default();
 
     format!(
@@ -142,6 +147,7 @@ pub fn init_map_js(
                     {min_zoom_param}
                     {max_zoom_param}
                     {max_bounds_param}
+                    {cooperative_gestures_param}
                     attributionControl: true
                 }});
 
@@ -1245,6 +1251,91 @@ pub fn remove_sky_js(map_id: &str) -> String {
         (function() {{
             {find}
             map.setSky(null);
+        }})();
+        "#
+    )
+}
+
+// =============================================================================
+// Fog / Atmosphere
+// =============================================================================
+
+/// Generate JS to set fog/atmosphere
+pub fn set_fog_js(map_id: &str, options_json: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            map.setFog({options_json});
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to remove fog/atmosphere
+pub fn remove_fog_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            map.setFog(null);
+        }})();
+        "#
+    )
+}
+
+// =============================================================================
+// Viewport Padding
+// =============================================================================
+
+/// Generate JS to set viewport padding
+pub fn set_padding_js(map_id: &str, padding_json: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            map.setPadding({padding_json});
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to get viewport padding
+pub fn get_padding_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            const p = map.getPadding();
+            return {{ top: p.top, bottom: p.bottom, left: p.left, right: p.right }};
+        }})();
+        "#
+    )
+}
+
+// =============================================================================
+// Layer Ordering
+// =============================================================================
+
+/// Generate JS to move a layer before another layer (or to top if before_id is None)
+pub fn move_layer_js(map_id: &str, layer_id: &str, before_id: Option<&str>) -> String {
+    let find = find_map_js(map_id);
+    let before_arg = before_id.map_or_else(|| "undefined".to_string(), |id| format!("'{id}'"));
+    format!(
+        r#"
+        (function() {{
+            {find}
+            try {{
+                if (map.getLayer('{layer_id}')) {{
+                    map.moveLayer('{layer_id}', {before_arg});
+                }}
+            }} catch (err) {{
+                console.error('[dioxus-maplibre] Failed to move layer:', err);
+            }}
         }})();
         "#
     )

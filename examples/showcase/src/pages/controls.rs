@@ -3,10 +3,12 @@ use dioxus_maplibre::{Map, MapHandle, ControlPosition, LatLng};
 
 #[component]
 pub fn Controls() -> Element {
+    let style: Signal<String> = use_context();
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 12.0,
                     on_ready: move |handle: MapHandle| {

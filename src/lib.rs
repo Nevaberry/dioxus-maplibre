@@ -54,7 +54,7 @@ pub use options::{
     RasterDemSourceOptions, ImageSourceOptions,
     LayerOptions, MarkerOptions, PopupOptions,
     FlyToOptions, EaseToOptions, JumpToOptions, FitBoundsOptions,
-    TerrainOptions, SkyOptions, FeatureIdentifier, QueryOptions,
+    TerrainOptions, SkyOptions, FogOptions, FeatureIdentifier, QueryOptions,
 };
 
 // Re-export public API — Handle & Component

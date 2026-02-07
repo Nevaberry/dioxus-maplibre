@@ -46,6 +46,10 @@ pub struct MapProps {
     #[props(optional)]
     pub max_bounds: Option<Bounds>,
 
+    /// Enable cooperative gestures (require Ctrl/Cmd to zoom with scroll)
+    #[props(optional)]
+    pub cooperative_gestures: Option<bool>,
+
     /// Container height (CSS value)
     #[props(default = "100%".to_string())]
     pub height: String,
@@ -157,6 +161,7 @@ pub fn Map(props: MapProps) -> Element {
         let min_zoom = props.min_zoom;
         let max_zoom = props.max_zoom;
         let max_bounds = props.max_bounds;
+        let cooperative_gestures = props.cooperative_gestures;
         let on_ready = props.on_ready;
         let on_click = props.on_click;
         let on_dblclick = props.on_dblclick;
@@ -209,6 +214,7 @@ pub fn Map(props: MapProps) -> Element {
                         min_zoom,
                         max_zoom,
                         max_bounds_str.as_deref(),
+                        cooperative_gestures,
                     );
 
                     let mut eval = document::eval(&init_js);
@@ -333,6 +339,20 @@ pub fn Map(props: MapProps) -> Element {
                     }
                 });
             });
+        }
+
+        // Live style switching: detect style prop changes after initialization
+        {
+            let mut tracked_style = use_signal(|| props.style.clone());
+            if tracked_style() != props.style && init_started() {
+                let map_id = map_id.clone();
+                let new_style = props.style.clone();
+                tracked_style.set(new_style.clone());
+                spawn(async move {
+                    let js = crate::interop::set_style_js(&map_id, &new_style);
+                    let _ = document::eval(&js).await;
+                });
+            }
         }
 
         // Cleanup on unmount

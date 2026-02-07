@@ -1,16 +1,19 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{Map, MapHandle, MarkerOptions, MarkerClickEvent, LatLng};
+use dioxus_maplibre::{Map, MapHandle, MarkerOptions, MarkerClickEvent, MarkerDragEndEvent, LatLng};
 
 #[component]
 pub fn Markers() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
     let mut clicked_marker = use_signal(|| None::<String>);
     let mut marker_count = use_signal(|| 0u32);
+    let mut drag_position = use_signal(|| None::<LatLng>);
+    let style: Signal<String> = use_context();
 
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 11.0,
                     on_ready: move |handle: MapHandle| {
@@ -38,6 +41,9 @@ pub fn Markers() -> Element {
                     on_marker_click: move |e: MarkerClickEvent| {
                         clicked_marker.set(Some(e.marker_id));
                     },
+                    on_marker_dragend: move |e: MarkerDragEndEvent| {
+                        drag_position.set(Some(e.latlng));
+                    },
                 }
             }
             div { style: "width: 280px; background: #16213e; color: #e0e0e0; padding: 16px; font-size: 13px;",
@@ -46,6 +52,10 @@ pub fn Markers() -> Element {
 
                 if let Some(id) = clicked_marker() {
                     p { "data-testid": "clicked-marker", "Clicked: {id}" }
+                }
+
+                if let Some(pos) = drag_position() {
+                    p { "data-testid": "drag-position", "Dragged to: {pos.lat:.4}, {pos.lng:.4}" }
                 }
 
                 if let Some(ref map) = *map_handle.read() {

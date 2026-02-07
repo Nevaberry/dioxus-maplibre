@@ -8,12 +8,13 @@ use dioxus_maplibre::{
 pub fn Terrain() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
     let mut terrain_enabled = use_signal(|| false);
+    let style: Signal<String> = use_context();
 
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
-                    style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+                    style: style(),
                     center: LatLng::new(47.27, 11.39),
                     zoom: 12.0,
                     pitch: 70.0,

@@ -11,11 +11,13 @@ pub fn Interaction() -> Element {
     let mut clicked_feature = use_signal(|| None::<String>);
     let mut hovered_feature = use_signal(|| None::<String>);
     let mut prev_hover_id = use_signal(|| None::<i64>);
+    let style: Signal<String> = use_context();
 
     rsx! {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 12.0,
                     on_ready: move |handle: MapHandle| {

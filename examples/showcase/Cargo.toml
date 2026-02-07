@@ -8,4 +8,5 @@ publish = false
 dioxus = { version = "0.7", features = ["web", "router"] }
 dioxus-maplibre = { path = "../.." }
 serde_json = "1"
+gloo-timers = { version = "0.3", features = ["futures"] }
 tracing = "0.1"

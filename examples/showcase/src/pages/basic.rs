@@ -7,6 +7,7 @@ pub fn Basic() -> Element {
     let mut last_click = use_signal(|| None::<MapClickEvent>);
     let mut position = use_signal(|| String::from("--"));
     let mut event_log = use_signal(Vec::<String>::new);
+    let style: Signal<String> = use_context();
 
     let mut log_event = move |msg: String| {
         event_log.write().push(msg);
@@ -21,6 +22,7 @@ pub fn Basic() -> Element {
         div { style: "display: flex; height: 100%;",
             div { style: "flex: 1; position: relative;",
                 Map {
+                    style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 12.0,
                     on_ready: move |handle: MapHandle| {
