@@ -2,27 +2,18 @@
 
 use dioxus::prelude::*;
 
-use crate::context::MapContext;
-use crate::events::{MapClickEvent, MapMoveEvent, MarkerClickEvent, LayerClickEvent, LayerHoverEvent};
+use crate::events::{
+    LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
+    MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerHoverEvent,
+};
+use crate::handle::MapHandle;
 use crate::interop::generate_map_id;
-use crate::types::LatLng;
-
-/// Event sent from JS when hovering over a marker
-#[derive(Debug, Clone, serde::Deserialize)]
-pub struct MarkerHoverEvent {
-    pub marker_id: String,
-    pub latlng: LatLng,
-    pub hover: bool,
-    /// Mouse cursor X position (viewport pixels)
-    pub cursor_x: f64,
-    /// Mouse cursor Y position (viewport pixels)
-    pub cursor_y: f64,
-}
+use crate::types::{Bounds, LatLng};
 
 /// Props for the Map component
 #[derive(Props, Clone, PartialEq)]
 pub struct MapProps {
-    /// MapLibre style URL (e.g., "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json")
+    /// MapLibre style URL
     #[props(default = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json".to_string())]
     pub style: String,
 
@@ -34,6 +25,26 @@ pub struct MapProps {
     #[props(default = 10.0)]
     pub zoom: f64,
 
+    /// Initial bearing in degrees (0-360)
+    #[props(default = 0.0)]
+    pub bearing: f64,
+
+    /// Initial pitch in degrees (0-85)
+    #[props(default = 0.0)]
+    pub pitch: f64,
+
+    /// Minimum zoom level
+    #[props(optional)]
+    pub min_zoom: Option<f64>,
+
+    /// Maximum zoom level
+    #[props(optional)]
+    pub max_zoom: Option<f64>,
+
+    /// Maximum bounds as [[sw_lng, sw_lat], [ne_lng, ne_lat]]
+    #[props(optional)]
+    pub max_bounds: Option<Bounds>,
+
     /// Container height (CSS value)
     #[props(default = "100%".to_string())]
     pub height: String,
@@ -42,97 +53,139 @@ pub struct MapProps {
     #[props(default = "100%".to_string())]
     pub width: String,
 
-    /// Callback when map is clicked
+    /// Called when the map is ready with a MapHandle
+    #[props(optional)]
+    pub on_ready: Option<EventHandler<MapHandle>>,
+
+    /// Called when the map is clicked
     #[props(optional)]
     pub on_click: Option<EventHandler<MapClickEvent>>,
 
-    /// Callback when a marker is clicked
+    /// Called when the map is double-clicked
+    #[props(optional)]
+    pub on_dblclick: Option<EventHandler<MapDblClickEvent>>,
+
+    /// Called on right-click / context menu
+    #[props(optional)]
+    pub on_contextmenu: Option<EventHandler<MapContextMenuEvent>>,
+
+    /// Called when a marker is clicked
     #[props(optional)]
     pub on_marker_click: Option<EventHandler<MarkerClickEvent>>,
 
-    /// Callback when hovering over a marker
+    /// Called when hovering over a marker
     #[props(optional)]
     pub on_marker_hover: Option<EventHandler<MarkerHoverEvent>>,
 
-    /// Callback when map view changes
+    /// Called when the map view changes (pan/zoom/rotate/pitch)
     #[props(optional)]
     pub on_move: Option<EventHandler<MapMoveEvent>>,
 
-    /// Callback when a feature in a layer is clicked
+    /// Called when zoom changes
+    #[props(optional)]
+    pub on_zoom: Option<EventHandler<MapZoomEvent>>,
+
+    /// Called when bearing (rotation) changes
+    #[props(optional)]
+    pub on_rotate: Option<EventHandler<MapRotateEvent>>,
+
+    /// Called when pitch changes
+    #[props(optional)]
+    pub on_pitch: Option<EventHandler<MapPitchEvent>>,
+
+    /// Called when a feature in a layer is clicked
     #[props(optional)]
     pub on_layer_click: Option<EventHandler<LayerClickEvent>>,
 
-    /// Callback when hovering over a feature in a layer
+    /// Called when hovering over a feature in a layer
     #[props(optional)]
     pub on_layer_hover: Option<EventHandler<LayerHoverEvent>>,
 
-    /// Child components (Marker, GeoJsonSource, etc.)
+    /// Child elements (HTML overlays, not map objects — use MapHandle for those)
     pub children: Element,
 }
 
 /// The main Map component
+///
+/// Renders a MapLibre GL JS map. Use the `on_ready` callback to receive a `MapHandle`
+/// for adding sources, layers, markers, and other map objects.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use dioxus_maplibre::{Map, MapHandle, LatLng};
+///
+/// fn App() -> Element {
+///     rsx! {
+///         Map {
+///             center: LatLng::new(60.17, 24.94),
+///             zoom: 12.0,
+///             on_ready: move |map: MapHandle| {
+///                 // map is ready — add sources, layers, markers, etc.
+///             },
+///         }
+///     }
+/// }
+/// ```
 #[component]
 pub fn Map(props: MapProps) -> Element {
-    // Generate unique map ID on first render
     let map_id = use_hook(generate_map_id);
     let container_id = format!("{map_id}_container");
 
-    // Track if map is ready
-    #[allow(unused_mut)] // mut needed only on wasm32
-    let mut is_ready = use_signal(|| false);
-
-    // Track if initialization has been started (to prevent multiple inits)
-    #[allow(unused_variables, unused_mut)] // only used on wasm32
+    #[allow(unused_variables, unused_mut)]
     let mut init_started = use_signal(|| false);
 
-    // Create context for child components
-    let ctx = MapContext {
-        map_id: map_id.clone(),
-        is_ready,
-    };
-    use_context_provider(|| ctx);
-
-    // Only initialize map on web/wasm targets
     #[cfg(target_arch = "wasm32")]
     {
         use crate::interop::{destroy_map_js, init_map_js};
         use tracing::debug;
 
-        // Store props for effect closure
         let style = props.style.clone();
         let center = props.center;
         let zoom = props.zoom;
+        let bearing = props.bearing;
+        let pitch = props.pitch;
+        let min_zoom = props.min_zoom;
+        let max_zoom = props.max_zoom;
+        let max_bounds = props.max_bounds;
+        let on_ready = props.on_ready;
         let on_click = props.on_click;
+        let on_dblclick = props.on_dblclick;
+        let on_contextmenu = props.on_contextmenu;
         let on_marker_click = props.on_marker_click;
         let on_marker_hover = props.on_marker_hover;
         let on_move = props.on_move;
+        let on_zoom = props.on_zoom;
+        let on_rotate = props.on_rotate;
+        let on_pitch = props.on_pitch;
         let on_layer_click = props.on_layer_click;
         let on_layer_hover = props.on_layer_hover;
 
-        // Initialize map and set up event loop - only once
         {
             let map_id = map_id.clone();
             let container_id = container_id.clone();
 
             use_effect(move || {
-                // Only initialize once per component instance
                 if init_started() {
                     debug!("Map init already started, skipping");
                     return;
                 }
                 init_started.set(true);
 
-                // Clone values for the async block
                 let container_id = container_id.clone();
                 let map_id = map_id.clone();
                 let style = style.clone();
 
+                let max_bounds_str = max_bounds.map(|b| {
+                    format!(
+                        "[[{}, {}], [{}, {}]]",
+                        b.sw.lng, b.sw.lat, b.ne.lng, b.ne.lat
+                    )
+                });
+
                 debug!("Starting map initialization for: {}", map_id);
 
-                // Spawn the async initialization
                 spawn(async move {
-                    // Create the eval that will receive events from the map
-                    // We use the SAME eval to execute the init code so dioxus.send() works
                     let init_js = init_map_js(
                         &container_id,
                         &map_id,
@@ -140,65 +193,107 @@ pub fn Map(props: MapProps) -> Element {
                         center.lng,
                         center.lat,
                         zoom,
+                        bearing,
+                        pitch,
+                        min_zoom,
+                        max_zoom,
+                        max_bounds_str.as_deref(),
                     );
 
-                    // Execute init JS in the event loop's eval context
                     let mut eval = document::eval(&init_js);
-                    debug!("Map init JS executed in event loop eval for: {}", map_id);
+                    debug!("Map init JS executed for: {}", map_id);
 
-                    // Process events from JS
                     loop {
                         match eval.recv::<String>().await {
                             Ok(json) => {
                                 debug!("Received event: {}", json);
 
-                                // Parse the event
-                                if let Ok(event) = serde_json::from_str::<serde_json::Value>(&json) {
+                                if let Ok(event) =
+                                    serde_json::from_str::<serde_json::Value>(&json)
+                                {
                                     match event.get("type").and_then(|t| t.as_str()) {
                                         Some("ready") => {
                                             debug!("Map ready!");
-                                            is_ready.set(true);
+                                            let handle = MapHandle::new(map_id.clone());
+                                            if let Some(handler) = &on_ready {
+                                                handler.call(handle);
+                                            }
                                         }
                                         Some("click") => {
-                                            if let Ok(click_event) = serde_json::from_value::<MapClickEvent>(event.clone())
+                                            if let Ok(e) = serde_json::from_value::<MapClickEvent>(event.clone())
                                                 && let Some(handler) = &on_click
                                             {
-                                                handler.call(click_event);
+                                                handler.call(e);
+                                            }
+                                        }
+                                        Some("dblclick") => {
+                                            if let Ok(e) = serde_json::from_value::<MapDblClickEvent>(event.clone())
+                                                && let Some(handler) = &on_dblclick
+                                            {
+                                                handler.call(e);
+                                            }
+                                        }
+                                        Some("contextmenu") => {
+                                            if let Ok(e) = serde_json::from_value::<MapContextMenuEvent>(event.clone())
+                                                && let Some(handler) = &on_contextmenu
+                                            {
+                                                handler.call(e);
                                             }
                                         }
                                         Some("marker_click") => {
-                                            if let Ok(marker_event) = serde_json::from_value::<MarkerClickEvent>(event.clone())
+                                            if let Ok(e) = serde_json::from_value::<MarkerClickEvent>(event.clone())
                                                 && let Some(handler) = &on_marker_click
                                             {
-                                                handler.call(marker_event);
+                                                handler.call(e);
                                             }
                                         }
                                         Some("marker_hover") => {
-                                            if let Ok(hover_event) = serde_json::from_value::<MarkerHoverEvent>(event.clone())
+                                            if let Ok(e) = serde_json::from_value::<MarkerHoverEvent>(event.clone())
                                                 && let Some(handler) = &on_marker_hover
                                             {
-                                                handler.call(hover_event);
+                                                handler.call(e);
                                             }
                                         }
                                         Some("move") => {
-                                            if let Ok(move_event) = serde_json::from_value::<MapMoveEvent>(event.clone())
+                                            if let Ok(e) = serde_json::from_value::<MapMoveEvent>(event.clone())
                                                 && let Some(handler) = &on_move
                                             {
-                                                handler.call(move_event);
+                                                handler.call(e);
+                                            }
+                                        }
+                                        Some("zoom") => {
+                                            if let Ok(e) = serde_json::from_value::<MapZoomEvent>(event.clone())
+                                                && let Some(handler) = &on_zoom
+                                            {
+                                                handler.call(e);
+                                            }
+                                        }
+                                        Some("rotate") => {
+                                            if let Ok(e) = serde_json::from_value::<MapRotateEvent>(event.clone())
+                                                && let Some(handler) = &on_rotate
+                                            {
+                                                handler.call(e);
+                                            }
+                                        }
+                                        Some("pitch") => {
+                                            if let Ok(e) = serde_json::from_value::<MapPitchEvent>(event.clone())
+                                                && let Some(handler) = &on_pitch
+                                            {
+                                                handler.call(e);
                                             }
                                         }
                                         Some("layer_click") => {
-                                            if let Ok(layer_event) = serde_json::from_value::<LayerClickEvent>(event.clone())
+                                            if let Ok(e) = serde_json::from_value::<LayerClickEvent>(event.clone())
                                                 && let Some(handler) = &on_layer_click
                                             {
-                                                handler.call(layer_event);
+                                                handler.call(e);
                                             }
                                         }
                                         Some("layer_hover") => {
-                                            if let Ok(layer_event) = serde_json::from_value::<LayerHoverEvent>(event.clone())
+                                            if let Ok(e) = serde_json::from_value::<LayerHoverEvent>(event.clone())
                                                 && let Some(handler) = &on_layer_hover
                                             {
-                                                handler.call(layer_event);
+                                                handler.call(e);
                                             }
                                         }
                                         _ => {}
@@ -206,7 +301,6 @@ pub fn Map(props: MapProps) -> Element {
                                 }
                             }
                             Err(e) => {
-                                // Channel closed, component unmounting
                                 debug!("Event channel closed: {:?}", e);
                                 break;
                             }
@@ -233,40 +327,7 @@ pub fn Map(props: MapProps) -> Element {
         div {
             id: "{container_id}",
             style: "width: {props.width}; height: {props.height};",
-
-            // Render children (markers) only when map is ready
-            if is_ready() {
-                {props.children}
-            }
+            {props.children}
         }
     }
 }
-
-/// Fly to a location on the map
-#[cfg(target_arch = "wasm32")]
-pub fn fly_to(map_id: &str, latlng: LatLng, zoom: Option<f64>) {
-    use crate::interop::fly_to_js;
-    let js = fly_to_js(map_id, latlng.lat, latlng.lng, zoom);
-    spawn(async move {
-        let _ = document::eval(&js).await;
-    });
-}
-
-/// No-op on non-wasm targets
-#[cfg(not(target_arch = "wasm32"))]
-pub fn fly_to(_map_id: &str, _latlng: LatLng, _zoom: Option<f64>) {}
-
-/// Pan the map by pixel offset (instant, no animation)
-/// Useful for compensating visual center when sidebars open/close
-#[cfg(target_arch = "wasm32")]
-pub fn pan_by(x: i32, y: i32) {
-    use crate::interop::pan_by_js;
-    let js = pan_by_js(x, y);
-    spawn(async move {
-        let _ = document::eval(&js).await;
-    });
-}
-
-/// No-op on non-wasm targets
-#[cfg(not(target_arch = "wasm32"))]
-pub fn pan_by(_x: i32, _y: i32) {}

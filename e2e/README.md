@@ -1,71 +1,99 @@
 # E2E Tests
 
-This directory uses MapLibre GL JS's official render test infrastructure via a git submodule.
+Behavioral Playwright tests for the dioxus-maplibre showcase app.
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) 18+ (or [Bun](https://bun.sh/))
+- [Dioxus CLI](https://dioxuslabs.com/) (`cargo install dioxus-cli`)
+- Chromium browser (installed automatically by Playwright)
 
 ## Setup
 
 ```bash
-# First time setup
 cd e2e
-npm run setup
-
-# Or manually:
-cd maplibre-gl-js
 npm install
-npm run build-dev
+npx playwright install chromium
 ```
 
 ## Running Tests
 
-```bash
-# Run all render tests (requires xvfb on Linux)
-npm test
-
-# Run without xvfb (if you have a display)
-npm run test:no-xvfb
-
-# Run specific test(s)
-npm run test:filter -- circle-radius
-npm run test:filter -- "fill-*"
-```
-
-## How It Works
-
-MapLibre's render test infrastructure:
-- **Puppeteer** for browser automation
-- **Port 2900**: Asset server for test fixtures
-- **Port 2901**: MVT server for vector tiles
-- **WebGL readPixels()**: Captures map renders (not browser screenshots)
-- **188+ test categories**: Each with `style.json` + `expected.png`
-
-Tests compare rendered output against expected images with pixel-level diffing.
-
-## Updating Fixtures
-
-When MapLibre updates their tests:
+### Automatic (Playwright starts the dev server)
 
 ```bash
-# Update submodule to latest
-npm run update-submodule
-
-# Rebuild and re-run
-npm run build-maplibre
-npm test
+npx playwright test
 ```
 
-## Test Results
+Playwright will automatically run `dx serve --port 8080` in `../examples/showcase/` and wait up to 2 minutes for the WASM build to complete. If the server is already running, it reuses it.
 
-Results are written to `maplibre-gl-js/test/integration/render/results.html`.
+### Manual (start server yourself)
 
-## Directory Structure
+In one terminal:
 
+```bash
+cd ../examples/showcase
+dx serve --port 8080
 ```
-e2e/
-├── maplibre-gl-js/          # Git submodule (MapLibre GL JS repo)
-│   ├── test/integration/
-│   │   ├── render/          # Render test runner
-│   │   └── assets/          # Test fixtures and expected images
-│   └── ...
-├── package.json             # Convenience scripts
-└── README.md                # This file
+
+In another terminal:
+
+```bash
+npx playwright test
 ```
+
+### Headed mode (see the browser)
+
+```bash
+npx playwright test --headed
+```
+
+### Run a specific test file
+
+```bash
+npx playwright test tests/basic.spec.ts
+```
+
+### Debug mode (step through tests)
+
+```bash
+npx playwright test --debug
+```
+
+## Test Files
+
+| File | What it tests |
+|------|---------------|
+| `basic.spec.ts` | Map canvas renders, click events, position tracking |
+| `markers.spec.ts` | Marker DOM elements, add/remove buttons |
+| `layers.spec.ts` | Layer rendering, visibility toggle, paint property changes |
+| `controls.spec.ts` | Navigation, scale, fullscreen controls in DOM |
+| `navigation.spec.ts` | flyTo, easeTo, jumpTo, fitBounds, zoom controls |
+| `interaction.spec.ts` | Layer click/hover, feature state |
+| `events.spec.ts` | Ready event, click event with coordinates |
+
+## Test Approach
+
+These are **behavioral tests** — no pixel comparison or screenshot matching. Assertions check:
+
+- DOM elements exist and are visible (`canvas.maplibregl-canvas`, `.maplibregl-marker`, `.maplibregl-ctrl-*`)
+- Event data appears in `[data-testid]` elements
+- Button clicks produce expected state changes
+- No console errors during operations
+
+## Configuration
+
+See `playwright.config.ts`:
+
+- **Browser**: Chromium headless
+- **Viewport**: 1280x720
+- **Timeout**: 60s per test, 120s for dev server startup
+- **Retries**: 1 (flaky tolerance for WASM load times)
+- **Base URL**: `http://localhost:8080`
+
+## Troubleshooting
+
+**Tests timeout waiting for canvas**: The first WASM build takes 1-2 minutes. Subsequent runs reuse the build and are faster. If it still times out, start the server manually first.
+
+**`dx` command not found**: Install with `cargo install dioxus-cli`.
+
+**Chromium not found**: Run `npx playwright install chromium`.

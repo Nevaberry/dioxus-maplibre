@@ -1,144 +1,79 @@
-//! dioxus-maplibre showcase
-//!
-//! This app demonstrates all features of the dioxus-maplibre crate.
-//! It's also used as the target for E2E tests.
-
 use dioxus::prelude::*;
-use dioxus_maplibre::{
-    Map, Marker, LatLng,
-    MapClickEvent, MarkerClickEvent, MapMoveEvent,
-    fly_to,
-};
 
-/// Application state using Dioxus 0.7 Stores for granular reactivity.
-/// Each field can be subscribed to independently, so changing `map_zoom`
-/// won't re-render components that only read `last_click`.
-#[derive(Store, Clone)]
-struct AppState {
-    last_click: Option<LatLng>,
-    map_center: LatLng,
-    map_zoom: f64,
-    clicked_marker: Option<String>,
-}
-
-// Static marker data: (id, name, lat, lng)
-const MARKERS: &[(&str, &str, f64, f64)] = &[
-    ("helsinki", "Helsinki", 60.1699, 24.9384),
-    ("tampere", "Tampere", 61.4978, 23.7610),
-    ("turku", "Turku", 60.4518, 22.2666),
-    ("oulu", "Oulu", 65.0121, 25.4651),
-];
+mod pages;
+use pages::*;
 
 fn main() {
     dioxus::launch(App);
 }
 
-fn App() -> Element {
-    // App state using Store for granular reactivity
-    let state = use_hook(|| Store::new(AppState {
-        last_click: None,
-        map_center: LatLng::helsinki(),
-        map_zoom: 10.0,
-        clicked_marker: None,
-    }));
+#[derive(Routable, Clone, PartialEq)]
+enum Route {
+    #[layout(AppLayout)]
+    #[route("/")]
+    Basic {},
+    #[route("/markers")]
+    Markers {},
+    #[route("/sources")]
+    Sources {},
+    #[route("/layers")]
+    Layers {},
+    #[route("/controls")]
+    Controls {},
+    #[route("/navigation")]
+    Navigation {},
+    #[route("/interaction")]
+    Interaction {},
+    #[route("/terrain")]
+    Terrain {},
+    #[route("/style")]
+    StyleSwitcher {},
+    #[route("/eval")]
+    EvalDemo {},
+}
 
-    // Access individual fields with granular subscriptions
-    let mut last_click = state.last_click();
-    let mut map_center = state.map_center();
-    let mut map_zoom = state.map_zoom();
-    let mut clicked_marker = state.clicked_marker();
-
+#[component]
+fn AppLayout() -> Element {
     rsx! {
         div {
-            style: "display: flex; height: 100vh;",
-
-            // Sidebar
-            div {
-                style: "width: 300px; padding: 16px; background: #f5f5f5; overflow-y: auto;",
-
-                h1 { style: "margin-bottom: 16px;", "dioxus-maplibre" }
-
-                // Click info
-                div {
-                    style: "margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px;",
-                    h3 { "Last Click" }
-                    if let Some(pos) = last_click() {
-                        p { "Lat: {pos.lat:.4}" }
-                        p { "Lng: {pos.lng:.4}" }
-                    } else {
-                        p { style: "color: #888;", "Click on the map" }
-                    }
-                }
-
-                // Map position
-                div {
-                    style: "margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px;",
-                    h3 { "Map Position" }
-                    p { "Center: {map_center().lat:.4}, {map_center().lng:.4}" }
-                    p { "Zoom: {map_zoom():.1}" }
-                }
-
-                // Clicked marker
-                div {
-                    style: "margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px;",
-                    h3 { "Marker Clicked" }
-                    if let Some(ref id) = clicked_marker() {
-                        p { "{id}" }
-                    } else {
-                        p { style: "color: #888;", "Click a marker" }
-                    }
-                }
-
-                // Quick nav buttons
-                div {
-                    style: "margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px;",
-                    h3 { "Quick Navigation" }
-                    for &(_id, name, lat, lng) in MARKERS.iter() {
-                        button {
-                            style: "display: block; width: 100%; padding: 8px; margin-bottom: 8px; cursor: pointer;",
-                            onclick: move |_| {
-                                fly_to("map_main", LatLng::new(lat, lng), Some(12.0));
-                            },
-                            "{name}"
-                        }
-                    }
-                }
+            style: "display: flex; height: calc(100vh - 16px);",
+            nav {
+                style: "width: 200px; background: #1a1a2e; padding: 16px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex-shrink: 0;",
+                h3 { style: "color: #e0e0e0; margin: 0 0 12px 0; font-size: 14px;", "dioxus-maplibre" }
+                NavLink { to: Route::Basic {}, label: "Basic Map" }
+                NavLink { to: Route::Markers {}, label: "Markers" }
+                NavLink { to: Route::Sources {}, label: "Sources" }
+                NavLink { to: Route::Layers {}, label: "Layers" }
+                NavLink { to: Route::Controls {}, label: "Controls" }
+                NavLink { to: Route::Navigation {}, label: "Navigation" }
+                NavLink { to: Route::Interaction {}, label: "Interaction" }
+                NavLink { to: Route::Terrain {}, label: "Terrain" }
+                NavLink { to: Route::StyleSwitcher {}, label: "Style" }
+                NavLink { to: Route::EvalDemo {}, label: "Eval" }
             }
-
-            // Map container
             div {
-                style: "flex: 1;",
-
-                Map {
-                    style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-                    center: LatLng::helsinki(),
-                    zoom: 6.0,
-                    height: "100%",
-                    width: "100%",
-
-                    on_click: move |e: MapClickEvent| {
-                        last_click.set(Some(e.latlng));
-                    },
-
-                    on_marker_click: move |e: MarkerClickEvent| {
-                        clicked_marker.set(Some(e.marker_id.clone()));
-                    },
-
-                    on_move: move |e: MapMoveEvent| {
-                        map_center.set(e.center);
-                        map_zoom.set(e.zoom);
-                    },
-
-                    // Add markers
-                    for &(id, name, lat, lng) in MARKERS.iter() {
-                        Marker {
-                            id: id.to_string(),
-                            position: LatLng::new(lat, lng),
-                            popup: Some(format!("<b>{name}</b><br>Click to select")),
-                        }
-                    }
-                }
+                style: "flex: 1; position: relative;",
+                Outlet::<Route> {}
             }
         }
+    }
+}
+
+#[component]
+fn NavLink(to: Route, label: &'static str) -> Element {
+    rsx! {
+        Link {
+            to,
+            style: "color: #b0b0cc; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; display: block;",
+            active_class: "nav-active",
+            "{label}"
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+fn App() -> Element {
+    rsx! {
+        Router::<Route> {}
     }
 }

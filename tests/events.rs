@@ -1,6 +1,11 @@
 //! Unit tests for event serialization/deserialization
 
-use dioxus_maplibre::{MapClickEvent, MarkerClickEvent, MapMoveEvent, LatLng, Point};
+use dioxus_maplibre::{
+    MapClickEvent, MapDblClickEvent, MapContextMenuEvent,
+    MarkerClickEvent, MarkerHoverEvent,
+    MapMoveEvent, MapZoomEvent, MapRotateEvent, MapPitchEvent,
+    LatLng, Point,
+};
 
 #[test]
 fn map_click_event_deserialize() {
@@ -29,6 +34,29 @@ fn map_click_event_serialize() {
 }
 
 #[test]
+fn map_dblclick_event_roundtrip() {
+    let event = MapDblClickEvent {
+        latlng: LatLng::new(61.5, 23.79),
+        point: Point::new(50.0, 75.0),
+    };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MapDblClickEvent = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.latlng.lat, 61.5);
+    assert_eq!(restored.point.x, 50.0);
+}
+
+#[test]
+fn map_contextmenu_event_roundtrip() {
+    let event = MapContextMenuEvent {
+        latlng: LatLng::new(62.0, 25.0),
+        point: Point::new(200.0, 300.0),
+    };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MapContextMenuEvent = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.latlng.lng, 25.0);
+}
+
+#[test]
 fn marker_click_event_deserialize() {
     let json = r#"{
         "marker_id": "marker_123",
@@ -53,6 +81,21 @@ fn marker_click_event_serialize() {
 }
 
 #[test]
+fn marker_hover_event_roundtrip() {
+    let event = MarkerHoverEvent {
+        marker_id: "m1".to_string(),
+        latlng: LatLng::new(60.0, 24.0),
+        hover: true,
+        cursor_x: 100.0,
+        cursor_y: 200.0,
+    };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MarkerHoverEvent = serde_json::from_str(&json).unwrap();
+    assert!(restored.hover);
+    assert_eq!(restored.cursor_x, 100.0);
+}
+
+#[test]
 fn map_move_event_deserialize() {
     let json = r#"{
         "center": {"lat": 60.17, "lng": 24.94},
@@ -69,10 +112,35 @@ fn map_move_event_serialize() {
     let event = MapMoveEvent {
         center: LatLng::new(60.17, 24.94),
         zoom: 10.0,
+        bounds: None,
     };
 
     let json = serde_json::to_string(&event).unwrap();
     assert!(json.contains("10"));
+}
+
+#[test]
+fn map_zoom_event_roundtrip() {
+    let event = MapZoomEvent { zoom: 15.5 };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MapZoomEvent = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.zoom, 15.5);
+}
+
+#[test]
+fn map_rotate_event_roundtrip() {
+    let event = MapRotateEvent { bearing: 45.0 };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MapRotateEvent = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.bearing, 45.0);
+}
+
+#[test]
+fn map_pitch_event_roundtrip() {
+    let event = MapPitchEvent { pitch: 60.0 };
+    let json = serde_json::to_string(&event).unwrap();
+    let restored: MapPitchEvent = serde_json::from_str(&json).unwrap();
+    assert_eq!(restored.pitch, 60.0);
 }
 
 #[test]

@@ -1,6 +1,6 @@
 [package]
 name = "dioxus-maplibre"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2024"
 description = "MapLibre GL JS wrapper for Dioxus 0.7"
 license = "MIT OR Apache-2.0"

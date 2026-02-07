@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-dioxus-maplibre is a MapLibre GL JS wrapper for Dioxus 0.7+. It provides Rust components that interface with the MapLibre GL JS library via JavaScript interop.
+dioxus-maplibre is a MapLibre GL JS wrapper for Dioxus 0.7+. It provides a `Map` component and `MapHandle` API that covers the full MapLibre GL JS surface.
 
 **Stack**: Rust, Dioxus 0.7, WASM, MapLibre GL JS (CDN)
 
@@ -14,89 +14,154 @@ For detailed architecture diagrams and module documentation, see [docs/CODEBASE_
 
 ```bash
 cargo build                 # Build the library
-cargo test                  # Run unit tests
+cargo test                  # Run unit tests (55 tests)
 cargo check                 # Check compilation
 
 # Run showcase app (for manual testing)
 cd examples/showcase && dx serve --port 8080
 
-# E2E tests with Playwright (requires Bun)
-cd e2e && bun install && bun test
+# E2E tests with Playwright
+cd e2e && npm install && npx playwright test
 ```
 
 ## Architecture
 
+### MapHandle-centric API
+
+All map operations go through `MapHandle`, a lightweight `Clone` wrapper around a map ID string. Users receive it via the `on_ready` callback and store it in a signal.
+
+```rust
+Map {
+    on_ready: move |map: MapHandle| {
+        map.add_geojson_source("points", opts);
+        map.add_layer(LayerOptions::circle("dots", "points").paint(json!({...})));
+        map.on_layer_click("dots");
+        map_handle.set(Some(map));
+    },
+}
+```
+
+**No child components for map objects** — everything (sources, layers, markers, controls) is added via MapHandle methods, not as child components.
+
 ### JS Interop Pattern
 
-The `interop/bridge.rs` module generates JavaScript code strings executed via `document::eval()`.
+`interop/bridge.rs` generates JavaScript code strings executed via `document::eval()`.
 
 **Key globals:**
-- `window.__dioxus_maplibre_maps[containerId]` - Map instance registry
-- `window.__dioxus_maplibre_markers[mapId]` - Marker registry per map
-- `window.__dioxus_maplibre_sources[mapId]` - Source registry per map
-- `window.__dioxus_maplibre_layers[mapId]` - Layer registry per map
-- `window.__dioxus_maplibre_sendEvent(json)` - Global event callback
+- `window.__dioxus_maplibre_maps[containerId]` — Map instance registry
+- `window.__dioxus_maplibre_markers[mapId]` — Marker registry per map
+- `window.__dioxus_maplibre_sendEvent(json)` — Global event callback
 
-**Why global sendEvent?** Markers are added via separate `document::eval()` calls, which create isolated contexts. `dioxus.send()` only works within the eval that created it. The global callback bridges this gap.
+**Why global sendEvent?** Each `document::eval()` creates an isolated JS context with its own `dioxus.send()`. Markers, layers, and other objects added via separate evals need a shared callback to route events back to the map's event channel.
 
 ### Component Lifecycle
 
 1. `Map` renders container div with generated UUID
 2. `use_effect` spawns async init (polls for MapLibre GL JS, waits for container, creates map)
-3. Event loop (`eval.recv()`) processes events and updates signals
-4. When `is_ready` signal becomes true, child components render
-5. Each child executes JS to add itself to the map
+3. Event loop (`eval.recv()`) processes events from JS
+4. On `"ready"` event: creates `MapHandle`, calls `on_ready`
+5. User adds map objects via MapHandle methods
 
 ### ID Mismatch Handling (Hot-Reload)
 
 Dioxus hot-reload can remount components with new UUIDs. The bridge handles this:
 - Container finder falls back to any `div[id^="map_"][id$="_container"]`
-- Marker lookup falls back to first available map in registry
+- Map operations fall back to first available map in registry
 - Map stored under both `actualContainerId` and original `map_id`
+
+### Fire-and-Forget vs Async
+
+- **Fire-and-forget**: `spawn(async { let _ = document::eval(&js).await; })` — for add/set/remove operations
+- **Async getters**: `document::eval(&js).join::<T>().await` — for `get_zoom()`, `get_center()`, etc.
+
+### Platform Guards
+
+All JS interop is gated with `#[cfg(target_arch = "wasm32")]` with no-op stubs for native targets. MapHandle methods silently no-op on non-wasm. Async getters return `None`.
 
 ## Public API
 
 ```rust
-// Components
-Map, Marker, Popup, GeoJsonSource, CircleLayer
+// Component
+Map
+
+// Handle (all map operations)
+MapHandle
+  // Sources: add_geojson_source, add_vector_source, add_raster_source,
+  //          add_raster_dem_source, add_image_source, update_geojson_source, remove_source
+  // Layers:  add_layer, remove_layer, set_paint_property, set_layout_property, set_filter
+  // Controls: add_navigation_control, add_geolocate_control, add_scale_control,
+  //           add_fullscreen_control, add_attribution_control
+  // Markers: add_marker, remove_marker, update_marker_position
+  // Popups:  add_popup, remove_popup
+  // Nav:     fly_to, ease_to, jump_to, fit_bounds, pan_to, pan_by,
+  //          zoom_to, zoom_in, zoom_out, rotate_to, set_pitch, reset_north
+  // Feature: set_feature_state, remove_feature_state
+  // Images:  load_image, remove_image
+  // Style:   set_style
+  // Terrain: set_terrain, remove_terrain, set_sky, remove_sky
+  // Events:  on_layer_click, on_layer_hover
+  // Getters: get_zoom, get_center, get_bearing, get_pitch, get_bounds (async)
+  // Escape:  eval, eval_async::<T>
 
 // Types
-LatLng, MapPosition, Bounds, Point
+LatLng, MapPosition, Bounds, Point, Padding
+
+// Options (serde → camelCase JSON)
+GeoJsonSourceOptions, VectorSourceOptions, RasterSourceOptions,
+RasterDemSourceOptions, ImageSourceOptions,
+LayerOptions (builder), MarkerOptions, PopupOptions,
+FlyToOptions, EaseToOptions, JumpToOptions, FitBoundsOptions,
+TerrainOptions, SkyOptions, FeatureIdentifier, ControlPosition
 
 // Events
-MapClickEvent, MarkerClickEvent, MarkerHoverEvent, MapMoveEvent, LayerClickEvent, LayerHoverEvent
-
-// Functions
-fly_to(map_id, latlng, zoom)  // Animated pan
-pan_by(x, y)                   // Instant pixel offset
-
-// Context
-MapContext { map_id, is_ready }
+MapClickEvent, MapDblClickEvent, MapContextMenuEvent,
+MarkerClickEvent, MarkerHoverEvent,
+MapMoveEvent, MapZoomEvent, MapRotateEvent, MapPitchEvent,
+LayerClickEvent, LayerHoverEvent
 ```
 
 ## Adding New Features
 
-**New map interactions:**
+**New map operations:**
 1. Add JS generator function in `interop/bridge.rs`
-2. Export from `interop/mod.rs` (pub(crate))
-3. Add Rust wrapper in `components/map.rs` with `#[cfg(target_arch = "wasm32")]`
-4. Export from `lib.rs`
+2. Add method to `MapHandle` in `handle.rs`
+3. Re-export new types from `lib.rs`
 
 **New event types:**
 1. Add struct in `events.rs` with serde Deserialize
 2. Add variant to `MapEvent` enum
-3. Add match arm in map.rs event loop
-4. Add optional callback prop to MapProps
+3. Add JS listener in `init_map_js()` (bridge.rs)
+4. Add match arm in `map.rs` event loop
+5. Add optional callback prop to `MapProps`
 
-**New components:**
-1. Create file in `src/components/`
-2. Export from `src/components/mod.rs`
-3. Re-export from `src/lib.rs`
+**New option types:**
+1. Add struct in `options.rs` with `#[serde(rename_all = "camelCase")]`
+2. Re-export from `lib.rs`
+3. Add serialization test in `tests/options.rs`
+
+## Module Map
+
+```
+src/
+├── lib.rs          # Public API re-exports
+├── types.rs        # LatLng, MapPosition, Bounds, Point
+├── events.rs       # All event types + MapEvent enum
+├── options.rs      # All option/builder types (serde → JSON)
+├── handle.rs       # MapHandle with all methods
+├── components/
+│   ├── mod.rs      # Only exports Map
+│   └── map.rs      # Map component, props, event loop
+└── interop/
+    ├── mod.rs      # Re-exports bridge
+    └── bridge.rs   # ~50 JS generator functions
+```
 
 ## Gotchas
 
 - **Coordinate order**: MapLibre uses `[lng, lat]`, not `[lat, lng]`. Use `LatLng::to_array()`.
-- **Layer ordering**: Layers must be added after their source. Wrap layers inside source components.
+- **Paint/layout as Value**: Use `serde_json::json!({})` — MapLibre's style spec is too large to type.
+- **Layer events separate from layers**: Call `map.on_layer_click("id")` after `map.add_layer(...)`.
 - **Popup content**: HTML string, not RSX. No reactivity in popups.
 - **Feature IDs**: MapLibre feature state requires numeric IDs (`i64`). String IDs not supported.
-- **Platform guards**: All JS interop must use `#[cfg(target_arch = "wasm32")]`.
+- **Platform guards**: All JS interop uses `#[cfg(target_arch = "wasm32")]`. No-op on native.
+- **Children are HTML overlays**: Map children are HTML divs, not map objects.

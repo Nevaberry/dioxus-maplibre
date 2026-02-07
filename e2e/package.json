@@ -1,16 +1,12 @@
 {
   "name": "dioxus-maplibre-e2e",
-  "version": "0.1.0",
-  "description": "E2E tests using MapLibre's official render test infrastructure",
-  "scripts": {
-    "install-maplibre": "cd maplibre-gl-js && npm install",
-    "build-maplibre": "cd maplibre-gl-js && npm run build-dev",
-    "test": "cd maplibre-gl-js && xvfb-run -a npm run test-render",
-    "test:no-xvfb": "cd maplibre-gl-js && npm run test-render",
-    "test:filter": "cd maplibre-gl-js && xvfb-run -a npm run test-render --",
-    "setup": "npm run install-maplibre && npm run build-maplibre",
-    "update-submodule": "cd .. && git submodule update --remote e2e/maplibre-gl-js"
+  "private": true,
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.50.0"
   },
-  "keywords": ["maplibre", "e2e", "render-tests"],
-  "license": "MIT"
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed"
+  }
 }

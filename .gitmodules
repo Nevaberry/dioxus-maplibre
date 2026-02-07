@@ -1,3 +1,0 @@
-[submodule "e2e/maplibre-gl-js"]
-	path = e2e/maplibre-gl-js
-	url = https://github.com/maplibre/maplibre-gl-js.git
