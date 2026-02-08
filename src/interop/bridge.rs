@@ -247,10 +247,10 @@ pub fn init_map_js(
                     }}));
                 }});
 
-                map.on('moveend', function() {{
+                const emitMoveEvent = function(eventName) {{
                     const center = map.getCenter();
                     const bounds = map.getBounds();
-                    _dbg('[dioxus-maplibre][event] moveend', {{
+                    _dbg(`[dioxus-maplibre][event] ${{eventName}}`, {{
                         mapId: '{map_id}',
                         center: {{ lat: center.lat, lng: center.lng }},
                         zoom: map.getZoom(),
@@ -261,6 +261,7 @@ pub fn init_map_js(
                     }});
                     dioxus.send(JSON.stringify({{
                         type: 'move',
+                        phase: eventName,
                         center: {{ lat: center.lat, lng: center.lng }},
                         zoom: map.getZoom(),
                         bounds: {{
@@ -268,6 +269,48 @@ pub fn init_map_js(
                             ne: {{ lat: bounds.getNorth(), lng: bounds.getEast() }}
                         }}
                     }}));
+                }};
+
+                const MOVE_EVENT_THROTTLE_MS = 80;
+                let moveRafId = null;
+                let movePending = false;
+                let lastMoveEmitAt = 0;
+
+                const scheduleMoveEmit = function() {{
+                    if (moveRafId !== null) {{
+                        return;
+                    }}
+                    moveRafId = requestAnimationFrame(() => {{
+                        moveRafId = null;
+                        if (!movePending) {{
+                            return;
+                        }}
+                        movePending = false;
+                        const now = (typeof performance !== 'undefined' && performance.now)
+                            ? performance.now()
+                            : Date.now();
+                        if ((now - lastMoveEmitAt) < MOVE_EVENT_THROTTLE_MS) {{
+                            movePending = true;
+                            scheduleMoveEmit();
+                            return;
+                        }}
+                        lastMoveEmitAt = now;
+                        emitMoveEvent('move');
+                    }});
+                }};
+
+                map.on('move', function() {{
+                    movePending = true;
+                    scheduleMoveEmit();
+                }});
+
+                map.on('moveend', function() {{
+                    movePending = false;
+                    if (moveRafId !== null) {{
+                        cancelAnimationFrame(moveRafId);
+                        moveRafId = null;
+                    }}
+                    emitMoveEvent('moveend');
                 }});
 
                 map.on('zoomend', function() {{
@@ -310,8 +353,8 @@ pub fn init_map_js(
                         loaded: typeof map.loaded === 'function' ? map.loaded() : null
                     }});
                     dioxus.send(JSON.stringify({{ type: 'ready' }}));
-                    _dbg('[dioxus-maplibre][event] synthetic moveend fire after load', {{ mapId: '{map_id}' }});
-                    map.fire('moveend');
+                    _dbg('[dioxus-maplibre][event] synthetic initial move emit after load', {{ mapId: '{map_id}' }});
+                    emitMoveEvent('move_load');
                 }});
 
                 map.on('error', function(e) {{

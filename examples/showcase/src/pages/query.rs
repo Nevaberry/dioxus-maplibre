@@ -225,39 +225,34 @@ pub fn Query() -> Element {
                     on_move: move |e: MapMoveEvent| {
                         let event_no = move_event_count() + 1;
                         move_event_count.set(event_no);
-                        emit_debug(
-                            debug_log,
-                            "INFO",
-                            format!(
-                                "on_move #{event_no} center=({}, {}) zoom={} bounds={:?}",
-                                e.center.lat, e.center.lng, e.zoom, e.bounds
-                            ),
-                        );
 
-                        if let Some(bounds) = e.bounds {
-                            let geometric_count = count_sample_points_in_bounds(&bounds);
+                        let phase = e.phase.unwrap_or_else(|| "move".to_string());
+                        let should_log_move = phase != "move" || event_no <= 8 || event_no % 10 == 0;
+                        if should_log_move {
                             emit_debug(
                                 debug_log,
                                 "INFO",
-                                format!("on_move #{event_no} geometric bounds count={geometric_count}"),
+                                format!(
+                                    "on_move #{event_no} phase={phase} center=({}, {}) zoom={} bounds={:?}",
+                                    e.center.lat, e.center.lng, e.zoom, e.bounds
+                                ),
                             );
+                        }
+
+                        if let Some(bounds) = e.bounds {
+                            let geometric_count = count_sample_points_in_bounds(&bounds);
+                            if should_log_move {
+                                emit_debug(
+                                    debug_log,
+                                    "INFO",
+                                    format!("on_move #{event_no} phase={phase} geometric bounds count={geometric_count}"),
+                                );
+                            }
                             feature_count.set(geometric_count);
                             query_result.set(format!("{geometric_count} features in viewport (bounds)"));
                         }
 
-                        if let Some(ref map) = *map_handle.read() {
-                            let map = map.clone();
-                            spawn(async move {
-                                refresh_viewport_count(
-                                    map,
-                                    feature_count,
-                                    query_result,
-                                    debug_log,
-                                    format!("move #{event_no}"),
-                                )
-                                .await;
-                            });
-                        } else {
+                        if map_handle.read().is_none() {
                             emit_debug(debug_log, "WARN", format!("on_move #{event_no} ignored: map_handle missing"));
                         }
                     },

@@ -82,6 +82,9 @@ pub struct MapMoveEvent {
     /// Current viewport bounds (sw/ne corners)
     #[serde(default)]
     pub bounds: Option<Bounds>,
+    /// Move phase from bridge (`move`, `moveend`, `move_load`)
+    #[serde(default)]
+    pub phase: Option<String>,
 }
 
 /// Event fired when the zoom level changes
