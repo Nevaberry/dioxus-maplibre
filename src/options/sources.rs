@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 /// Options for adding a GeoJSON source
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct GeoJsonSourceOptions {
     /// GeoJSON data (FeatureCollection, Feature, or Geometry)
@@ -63,7 +63,7 @@ pub struct VectorSourceOptions {
 }
 
 /// Options for adding a raster tile source
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct RasterSourceOptions {
     /// TileJSON URL
@@ -88,7 +88,7 @@ pub struct RasterSourceOptions {
 }
 
 /// Options for adding a raster DEM source (for terrain)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct RasterDemSourceOptions {
     /// TileJSON URL
@@ -115,7 +115,7 @@ pub struct ImageSourceOptions {
     /// Image URL
     pub url: String,
 
-    /// Four corner coordinates [[lng,lat], [lng,lat], [lng,lat], [lng,lat]]
+    /// Four corner coordinates as `[[lng, lat], [lng, lat], [lng, lat], [lng, lat]]`
     /// Order: top-left, top-right, bottom-right, bottom-left
     pub coordinates: [[f64; 2]; 4],
 }

@@ -1,4 +1,5 @@
 //! Unit tests for option type serialization
+#![allow(clippy::float_cmp)]
 
 use dioxus_maplibre::{
     ControlPosition, EaseToOptions, FeatureIdentifier, FitBoundsOptions, FlyToOptions, FogOptions,

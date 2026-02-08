@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[must_use]
 pub struct LayerOptions {
     /// Unique layer ID
     pub id: String,

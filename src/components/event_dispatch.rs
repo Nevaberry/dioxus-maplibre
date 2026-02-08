@@ -4,8 +4,8 @@ use dioxus::prelude::{EventHandler, WritableExt};
 
 use crate::events::{
     LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapEvent, MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
-    MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
+    MapErrorEvent, MapEvent, MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent,
+    MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
 };
 use crate::handle::MapHandle;
 
@@ -14,6 +14,7 @@ use super::context::MapHandleSignal;
 #[derive(Clone, Default)]
 pub(crate) struct MapEventHandlers {
     pub on_ready: Option<EventHandler<MapHandle>>,
+    pub on_error: Option<EventHandler<MapErrorEvent>>,
     pub on_click: Option<EventHandler<MapClickEvent>>,
     pub on_dblclick: Option<EventHandler<MapDblClickEvent>>,
     pub on_contextmenu: Option<EventHandler<MapContextMenuEvent>>,
@@ -105,6 +106,9 @@ impl MapEventHandlers {
                 }
             }
             MapEvent::Error(event) => {
+                if let Some(handler) = &self.on_error {
+                    handler.call(event.clone());
+                }
                 tracing::error!(
                     map_id,
                     message = ?event.message,

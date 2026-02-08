@@ -8,6 +8,7 @@
 
 - Imperative API: app uses `MapHandle` methods.
 - Declarative API: child components (`MapSource`, `MapLayer`, etc.) use `use_map_handle()`.
+  Components reconcile prop changes and clean up listeners/controls on unmount.
 - JS bridge: `interop/*` modules generate JS snippets executed through `document::eval`.
 
 ## Directory Structure
@@ -85,7 +86,7 @@ src/
 1. `interop::lifecycle::init_map_js` registers map/marker/layer listeners.
 2. JS emits tagged JSON events (`type` field).
 3. `Map` parses into `MapEvent`.
-4. `event_dispatch` routes typed events to user handlers and sets context handle on `Ready`.
+4. `event_dispatch` routes typed events (including `Error`) to user handlers and sets context handle on `Ready`.
 
 ## Handle Layer
 

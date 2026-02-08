@@ -17,12 +17,12 @@ pub struct TerrainOptions {
 ///
 /// The sky spec is complex with many expression-based properties.
 /// Pass any valid MapLibre sky specification as a JSON value.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SkyOptions(pub serde_json::Value);
 
 /// Options for setting fog/atmosphere (passthrough to MapLibre spec)
 ///
 /// The fog spec supports color, horizon-blend, range, star-intensity, and more.
 /// Pass any valid MapLibre fog specification as a JSON value.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FogOptions(pub serde_json::Value);

@@ -89,6 +89,7 @@ fn App() -> Element {
 ## Public API
 
 - `Map` root component
+- Event callbacks including `on_ready` and `on_error`
 - `MapHandle` imperative API
 - `use_map_handle()` context hook
 - Declarative helpers: `MapSource`, `MapLayer`, `MapMarker`, `MapPopup`, `MapControl`

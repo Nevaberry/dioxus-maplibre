@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 /// Options for querying rendered or source features
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryOptions {
     /// Restrict query to specific layer IDs
@@ -15,7 +15,7 @@ pub struct QueryOptions {
 }
 
 /// Identifies a feature for feature state operations
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureIdentifier {
     /// Source ID

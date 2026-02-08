@@ -1,4 +1,5 @@
 //! Unit tests for event serialization/deserialization
+#![allow(clippy::float_cmp, clippy::unreadable_literal)]
 
 use dioxus_maplibre::{
     LatLng, MapClickEvent, MapContextMenuEvent, MapDblClickEvent, MapErrorEvent, MapEvent,

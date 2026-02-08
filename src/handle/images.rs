@@ -1,4 +1,5 @@
 //! Image sprite MapHandle methods.
+#![allow(clippy::unused_async)]
 
 use super::MapHandle;
 #[cfg(target_arch = "wasm32")]

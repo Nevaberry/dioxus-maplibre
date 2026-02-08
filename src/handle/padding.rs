@@ -1,4 +1,5 @@
 //! Viewport padding MapHandle methods.
+#![allow(clippy::needless_pass_by_value, clippy::unused_async)]
 
 use super::MapHandle;
 use crate::options::Padding;

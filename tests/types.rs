@@ -1,4 +1,5 @@
 //! Unit tests for geographic types
+#![allow(clippy::float_cmp)]
 
 use dioxus_maplibre::{Bounds, LatLng, MapPosition, Point, QueryFeature};
 

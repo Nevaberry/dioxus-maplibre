@@ -1,4 +1,5 @@
 //! Layer-related MapHandle methods.
+#![allow(clippy::needless_pass_by_value)]
 
 use super::MapHandle;
 use crate::options::LayerOptions;

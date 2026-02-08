@@ -9,7 +9,7 @@ use super::event_dispatch::MapEventHandlers;
 use crate::events::MapEvent;
 use crate::events::{
     LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
+    MapErrorEvent, MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
     MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
 };
 use crate::handle::MapHandle;
@@ -70,6 +70,10 @@ pub struct MapProps {
     /// Called when the map is ready with a `MapHandle`.
     #[props(optional)]
     pub on_ready: Option<EventHandler<MapHandle>>,
+
+    /// Called when the JS bridge reports an initialization or runtime error.
+    #[props(optional)]
+    pub on_error: Option<EventHandler<MapErrorEvent>>,
 
     /// Called when the map is clicked.
     #[props(optional)]
@@ -146,6 +150,7 @@ pub fn Map(props: MapProps) -> Element {
 
         let handlers = MapEventHandlers {
             on_ready: props.on_ready,
+            on_error: props.on_error,
             on_click: props.on_click,
             on_dblclick: props.on_dblclick,
             on_contextmenu: props.on_contextmenu,

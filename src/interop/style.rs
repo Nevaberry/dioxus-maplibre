@@ -1,6 +1,8 @@
 //! Style and runtime style replay JS bridge.
 
 use super::find_map_js;
+use super::js_escape::js_single_quoted;
+
 pub fn set_move_event_throttle_js(map_id: &str, throttle_ms: u32) -> String {
     let find = find_map_js(map_id);
     format!(
@@ -17,23 +19,25 @@ pub fn set_move_event_throttle_js(map_id: &str, throttle_ms: u32) -> String {
 /// Generate JS to set the map style
 pub fn set_style_js(map_id: &str, style_url: &str) -> String {
     let find = find_map_js(map_id);
+    let map_id_lit = js_single_quoted(map_id);
+    let style_url_lit = js_single_quoted(style_url);
     format!(
         r#"
         (function() {{
             {find}
-            const sourceRegistry = window.__dioxus_maplibre_sources && window.__dioxus_maplibre_sources['{map_id}'];
-            const layerRegistry = window.__dioxus_maplibre_layers && window.__dioxus_maplibre_layers['{map_id}'];
-            const layerOrder = window.__dioxus_maplibre_layer_order && window.__dioxus_maplibre_layer_order['{map_id}'];
-            const imageRegistry = window.__dioxus_maplibre_images && window.__dioxus_maplibre_images['{map_id}'];
-            const terrainState = window.__dioxus_maplibre_terrain && window.__dioxus_maplibre_terrain['{map_id}'];
-            const skyState = window.__dioxus_maplibre_sky && window.__dioxus_maplibre_sky['{map_id}'];
-            const fogState = window.__dioxus_maplibre_fog && window.__dioxus_maplibre_fog['{map_id}'];
+            const sourceRegistry = window.__dioxus_maplibre_sources && window.__dioxus_maplibre_sources[{map_id_lit}];
+            const layerRegistry = window.__dioxus_maplibre_layers && window.__dioxus_maplibre_layers[{map_id_lit}];
+            const layerOrder = window.__dioxus_maplibre_layer_order && window.__dioxus_maplibre_layer_order[{map_id_lit}];
+            const imageRegistry = window.__dioxus_maplibre_images && window.__dioxus_maplibre_images[{map_id_lit}];
+            const terrainState = window.__dioxus_maplibre_terrain && window.__dioxus_maplibre_terrain[{map_id_lit}];
+            const skyState = window.__dioxus_maplibre_sky && window.__dioxus_maplibre_sky[{map_id_lit}];
+            const fogState = window.__dioxus_maplibre_fog && window.__dioxus_maplibre_fog[{map_id_lit}];
 
             if (!window.__dioxus_maplibre_style_switch_tokens) {{
                 window.__dioxus_maplibre_style_switch_tokens = {{}};
             }}
             const styleSwitchToken = `${{Date.now()}}_${{Math.random().toString(36).slice(2)}}`;
-            window.__dioxus_maplibre_style_switch_tokens['{map_id}'] = styleSwitchToken;
+            window.__dioxus_maplibre_style_switch_tokens[{map_id_lit}] = styleSwitchToken;
 
             let replayed = false;
             let replayTimeoutId = null;
@@ -49,9 +53,9 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                 return {{ styleLoaded, sourcesGone, layersGone }};
             }};
 
-            const replayRuntimeState = function(trigger) {{
+            const replayRuntimeState = function(_trigger) {{
                 const activeToken = window.__dioxus_maplibre_style_switch_tokens
-                    && window.__dioxus_maplibre_style_switch_tokens['{map_id}'];
+                    && window.__dioxus_maplibre_style_switch_tokens[{map_id_lit}];
                 if (activeToken !== styleSwitchToken) return;
                 if (replayed) {{
                     return;
@@ -131,7 +135,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                         }}
                     }}
                 }} catch (err) {{
-                    console.error('[dioxus-maplibre] Runtime replay failed for map {map_id}:', err);
+                    console.error('[dioxus-maplibre] Runtime replay failed for map', {map_id_lit}, err);
                 }} finally {{
                     if (replayTimeoutId != null) {{
                         clearTimeout(replayTimeoutId);
@@ -170,7 +174,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
             map.on('style.load', onStyleLoad);
             map.on('styledata', onStyleData);
             awaitingNewStyle = true;
-            map.setStyle('{style_url}');
+            map.setStyle({style_url_lit});
 
             setTimeout(function() {{
                 if (!awaitingNewStyle || replayed) {{

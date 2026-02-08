@@ -1,5 +1,8 @@
 //! Map initialization and teardown JS bridge.
-/// Generate JS to initialize a MapLibre map
+
+use super::js_escape::js_single_quoted;
+
+/// Generate JS to initialize a MapLibre map.
 ///
 /// Sets up the map with polling for MapLibre GL JS, container finding with
 /// hot-reload fallback, and event listeners for all supported event types.
@@ -19,6 +22,10 @@ pub fn init_map_js(
     cooperative_gestures: Option<bool>,
     move_event_throttle_ms: u32,
 ) -> String {
+    let container_id_lit = js_single_quoted(container_id);
+    let map_id_lit = js_single_quoted(map_id);
+    let style_lit = js_single_quoted(style);
+
     let min_zoom_param = min_zoom
         .map(|z| format!("minZoom: {z},"))
         .unwrap_or_default();
@@ -53,12 +60,12 @@ pub fn init_map_js(
             }}
 
             // Wait for container to be in DOM - try specific ID first, then fall back
-            let container = document.getElementById('{container_id}');
+            let container = document.getElementById({container_id_lit});
             let containerAttempts = 0;
 
             while (!container && containerAttempts < 50) {{
                 await new Promise(resolve => requestAnimationFrame(resolve));
-                container = document.getElementById('{container_id}');
+                container = document.getElementById({container_id_lit});
                 containerAttempts++;
             }}
 
@@ -77,19 +84,22 @@ pub fn init_map_js(
             }}
 
             if (!container) {{
-                console.error('[dioxus-maplibre] Container not found by ID or fallback:', '{container_id}');
+                console.error('[dioxus-maplibre] Container not found by ID or fallback:', {container_id_lit});
                 dioxus.send(JSON.stringify({{ type: 'error', message: 'Container not found' }}));
                 return 'error';
             }}
 
             const actualContainerId = container.id;
 
-            // Ensure registry exists
+            // Ensure registries exist
             if (!window.__dioxus_maplibre_maps) {{
                 window.__dioxus_maplibre_maps = {{}};
             }}
             if (!window.__dioxus_maplibre_markers) {{
                 window.__dioxus_maplibre_markers = {{}};
+            }}
+            if (!window.__dioxus_maplibre_popups) {{
+                window.__dioxus_maplibre_popups = {{}};
             }}
             if (!window.__dioxus_maplibre_sources) {{
                 window.__dioxus_maplibre_sources = {{}};
@@ -99,6 +109,12 @@ pub fn init_map_js(
             }}
             if (!window.__dioxus_maplibre_layer_order) {{
                 window.__dioxus_maplibre_layer_order = {{}};
+            }}
+            if (!window.__dioxus_maplibre_layer_handlers) {{
+                window.__dioxus_maplibre_layer_handlers = {{}};
+            }}
+            if (!window.__dioxus_maplibre_controls) {{
+                window.__dioxus_maplibre_controls = {{}};
             }}
             if (!window.__dioxus_maplibre_images) {{
                 window.__dioxus_maplibre_images = {{}};
@@ -126,8 +142,8 @@ pub fn init_map_js(
 
             try {{
                 const map = new maplibregl.Map({{
-                    container: container,
-                    style: '{style}',
+                    container,
+                    style: {style_lit},
                     center: [{center_lng}, {center_lat}],
                     zoom: {zoom},
                     bearing: {bearing},
@@ -145,28 +161,34 @@ pub fn init_map_js(
                         ? initialMoveEventThrottleMs
                         : 80;
 
-                // Store map reference under both actual container ID and map_id
+                // Store map reference under both actual container ID and map_id.
                 window.__dioxus_maplibre_maps[actualContainerId] = map;
                 window.__dioxus_maplibre_markers[actualContainerId] = {{}};
+                window.__dioxus_maplibre_popups[actualContainerId] = {{}};
                 window.__dioxus_maplibre_sources[actualContainerId] = {{}};
                 window.__dioxus_maplibre_layers[actualContainerId] = {{}};
                 window.__dioxus_maplibre_layer_order[actualContainerId] = [];
+                window.__dioxus_maplibre_layer_handlers[actualContainerId] = {{}};
+                window.__dioxus_maplibre_controls[actualContainerId] = {{}};
                 window.__dioxus_maplibre_images[actualContainerId] = {{}};
                 window.__dioxus_maplibre_terrain[actualContainerId] = {{ hasValue: false, value: null }};
                 window.__dioxus_maplibre_sky[actualContainerId] = {{ hasValue: false, value: null }};
                 window.__dioxus_maplibre_fog[actualContainerId] = {{ hasValue: false, value: null }};
 
-                window.__dioxus_maplibre_maps['{map_id}'] = map;
-                window.__dioxus_maplibre_markers['{map_id}'] = window.__dioxus_maplibre_markers[actualContainerId];
-                window.__dioxus_maplibre_sources['{map_id}'] = window.__dioxus_maplibre_sources[actualContainerId];
-                window.__dioxus_maplibre_layers['{map_id}'] = window.__dioxus_maplibre_layers[actualContainerId];
-                window.__dioxus_maplibre_layer_order['{map_id}'] = window.__dioxus_maplibre_layer_order[actualContainerId];
-                window.__dioxus_maplibre_images['{map_id}'] = window.__dioxus_maplibre_images[actualContainerId];
-                window.__dioxus_maplibre_terrain['{map_id}'] = window.__dioxus_maplibre_terrain[actualContainerId];
-                window.__dioxus_maplibre_sky['{map_id}'] = window.__dioxus_maplibre_sky[actualContainerId];
-                window.__dioxus_maplibre_fog['{map_id}'] = window.__dioxus_maplibre_fog[actualContainerId];
+                window.__dioxus_maplibre_maps[{map_id_lit}] = map;
+                window.__dioxus_maplibre_markers[{map_id_lit}] = window.__dioxus_maplibre_markers[actualContainerId];
+                window.__dioxus_maplibre_popups[{map_id_lit}] = window.__dioxus_maplibre_popups[actualContainerId];
+                window.__dioxus_maplibre_sources[{map_id_lit}] = window.__dioxus_maplibre_sources[actualContainerId];
+                window.__dioxus_maplibre_layers[{map_id_lit}] = window.__dioxus_maplibre_layers[actualContainerId];
+                window.__dioxus_maplibre_layer_order[{map_id_lit}] = window.__dioxus_maplibre_layer_order[actualContainerId];
+                window.__dioxus_maplibre_layer_handlers[{map_id_lit}] = window.__dioxus_maplibre_layer_handlers[actualContainerId];
+                window.__dioxus_maplibre_controls[{map_id_lit}] = window.__dioxus_maplibre_controls[actualContainerId];
+                window.__dioxus_maplibre_images[{map_id_lit}] = window.__dioxus_maplibre_images[actualContainerId];
+                window.__dioxus_maplibre_terrain[{map_id_lit}] = window.__dioxus_maplibre_terrain[actualContainerId];
+                window.__dioxus_maplibre_sky[{map_id_lit}] = window.__dioxus_maplibre_sky[actualContainerId];
+                window.__dioxus_maplibre_fog[{map_id_lit}] = window.__dioxus_maplibre_fog[actualContainerId];
 
-                // Global event sender for cross-eval communication
+                // Global event sender for cross-eval communication.
                 window.__dioxus_maplibre_sendEvent = function(eventJson) {{
                     dioxus.send(eventJson);
                 }};
@@ -290,11 +312,15 @@ pub fn init_map_js(
                 }});
 
                 map.on('error', function(e) {{
-                    console.error('[dioxus-maplibre] Map error:', e.error);
+                    const message = e && e.error && e.error.message
+                        ? String(e.error.message)
+                        : (e && e.error ? String(e.error) : 'Map error');
+                    console.error('[dioxus-maplibre] Map error:', e && e.error ? e.error : e);
+                    dioxus.send(JSON.stringify({{ type: 'error', message }}));
                 }});
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to create map:', err);
-                dioxus.send(JSON.stringify({{ type: 'error', message: err.message }}));
+                dioxus.send(JSON.stringify({{ type: 'error', message: err && err.message ? err.message : String(err) }}));
                 return 'error';
             }}
 
@@ -304,17 +330,50 @@ pub fn init_map_js(
     )
 }
 
-/// Generate JS to destroy a map and clean up resources
+/// Generate JS to destroy a map and clean up resources.
 pub fn destroy_map_js(map_id: &str) -> String {
+    let map_id_lit = js_single_quoted(map_id);
     format!(
         r#"
         (function() {{
-            const map = window.__dioxus_maplibre_maps && window.__dioxus_maplibre_maps['{map_id}'];
+            const map = window.__dioxus_maplibre_maps && window.__dioxus_maplibre_maps[{map_id_lit}];
 
-            const markers = window.__dioxus_maplibre_markers['{map_id}'];
+            const markers = window.__dioxus_maplibre_markers && window.__dioxus_maplibre_markers[{map_id_lit}];
             if (markers) {{
                 Object.values(markers).forEach(marker => marker.remove());
-                delete window.__dioxus_maplibre_markers['{map_id}'];
+                delete window.__dioxus_maplibre_markers[{map_id_lit}];
+            }}
+
+            const popups = window.__dioxus_maplibre_popups && window.__dioxus_maplibre_popups[{map_id_lit}];
+            if (popups) {{
+                Object.values(popups).forEach(popup => popup.remove());
+                delete window.__dioxus_maplibre_popups[{map_id_lit}];
+            }}
+
+            const controls = window.__dioxus_maplibre_controls && window.__dioxus_maplibre_controls[{map_id_lit}];
+            if (map && controls) {{
+                for (const control of Object.values(controls)) {{
+                    try {{
+                        map.removeControl(control);
+                    }} catch (_err) {{}}
+                }}
+                delete window.__dioxus_maplibre_controls[{map_id_lit}];
+            }}
+
+            const mapHandlers = window.__dioxus_maplibre_layer_handlers && window.__dioxus_maplibre_layer_handlers[{map_id_lit}];
+            if (map && mapHandlers) {{
+                for (const [layerId, handlers] of Object.entries(mapHandlers)) {{
+                    if (handlers && handlers.click) {{
+                        map.off('click', layerId, handlers.click);
+                    }}
+                    if (handlers && handlers.mouseenter) {{
+                        map.off('mouseenter', layerId, handlers.mouseenter);
+                    }}
+                    if (handlers && handlers.mouseleave) {{
+                        map.off('mouseleave', layerId, handlers.mouseleave);
+                    }}
+                }}
+                delete window.__dioxus_maplibre_layer_handlers[{map_id_lit}];
             }}
 
             if (map) {{
@@ -325,9 +384,12 @@ pub fn destroy_map_js(map_id: &str) -> String {
             const registries = [
                 '__dioxus_maplibre_maps',
                 '__dioxus_maplibre_markers',
+                '__dioxus_maplibre_popups',
                 '__dioxus_maplibre_sources',
                 '__dioxus_maplibre_layers',
                 '__dioxus_maplibre_layer_order',
+                '__dioxus_maplibre_layer_handlers',
+                '__dioxus_maplibre_controls',
                 '__dioxus_maplibre_images',
                 '__dioxus_maplibre_terrain',
                 '__dioxus_maplibre_sky',
@@ -342,7 +404,7 @@ pub fn destroy_map_js(map_id: &str) -> String {
                     }}
                 }}
             }}
-            keysToDelete.push('{map_id}');
+            keysToDelete.push({map_id_lit});
 
             for (const key of keysToDelete) {{
                 for (const registryName of registries) {{

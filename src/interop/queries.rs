@@ -1,6 +1,8 @@
 //! Feature query JS bridge.
 
 use super::find_map_js;
+use super::js_escape::js_single_quoted;
+
 pub fn query_rendered_features_js(map_id: &str, options_json: &str) -> String {
     let find = find_map_js(map_id);
     format!(
@@ -78,19 +80,20 @@ pub fn query_rendered_features_at_js(map_id: &str, x: f64, y: f64, options_json:
 /// Generate JS to query source features
 pub fn query_source_features_js(map_id: &str, source_id: &str, options_json: &str) -> String {
     let find = find_map_js(map_id);
+    let source_id_lit = js_single_quoted(source_id);
     format!(
         r#"
         (function() {{
             {find}
             try {{
                 const opts = {options_json};
-                const features = map.querySourceFeatures('{source_id}', opts);
+                const features = map.querySourceFeatures({source_id_lit}, opts);
 
                 return features.map(f => ({{
                     id: Number.isFinite(f.id) ? Math.trunc(f.id) : null,
                     geometry: f.geometry,
                     properties: f.properties || {{}},
-                    source: '{source_id}',
+                    source: {source_id_lit},
                     sourceLayer: f.sourceLayer || null
                 }}));
             }} catch (err) {{

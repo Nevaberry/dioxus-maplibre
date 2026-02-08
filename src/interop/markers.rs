@@ -1,6 +1,8 @@
 //! Marker management JS bridge.
 
 use super::find_map_js;
+use super::js_escape::js_single_quoted;
+
 pub fn add_marker_js(
     map_id: &str,
     marker_id: &str,
@@ -9,6 +11,8 @@ pub fn add_marker_js(
     options_json: &str,
 ) -> String {
     let find = find_map_js(map_id);
+    let map_id_lit = js_single_quoted(map_id);
+    let marker_id_lit = js_single_quoted(marker_id);
     format!(
         r#"
         (function() {{
@@ -46,19 +50,20 @@ pub fn add_marker_js(
             }}
 
             // Store marker reference
-            if (!window.__dioxus_maplibre_markers['{map_id}']) {{
-                window.__dioxus_maplibre_markers['{map_id}'] = {{}};
+            if (!window.__dioxus_maplibre_markers[{map_id_lit}]) {{
+                window.__dioxus_maplibre_markers[{map_id_lit}] = {{}};
             }}
-            window.__dioxus_maplibre_markers['{map_id}']['{marker_id}'] = marker;
+            window.__dioxus_maplibre_markers[{map_id_lit}][{marker_id_lit}] = marker;
 
             // Click handler
             marker.getElement().addEventListener('click', function(e) {{
                 e.stopPropagation();
                 if (window.__dioxus_maplibre_sendEvent) {{
+                    const lngLat = marker.getLngLat();
                     window.__dioxus_maplibre_sendEvent(JSON.stringify({{
                         type: 'marker_click',
-                        marker_id: '{marker_id}',
-                        latlng: {{ lat: {lat}, lng: {lng} }}
+                        marker_id: {marker_id_lit},
+                        latlng: {{ lat: lngLat.lat, lng: lngLat.lng }}
                     }}));
                 }}
             }});
@@ -70,7 +75,7 @@ pub fn add_marker_js(
                     if (window.__dioxus_maplibre_sendEvent) {{
                         window.__dioxus_maplibre_sendEvent(JSON.stringify({{
                             type: 'marker_dragstart',
-                            marker_id: '{marker_id}',
+                            marker_id: {marker_id_lit},
                             latlng: {{ lat: lngLat.lat, lng: lngLat.lng }}
                         }}));
                     }}
@@ -80,7 +85,7 @@ pub fn add_marker_js(
                     if (window.__dioxus_maplibre_sendEvent) {{
                         window.__dioxus_maplibre_sendEvent(JSON.stringify({{
                             type: 'marker_dragend',
-                            marker_id: '{marker_id}',
+                            marker_id: {marker_id_lit},
                             latlng: {{ lat: lngLat.lat, lng: lngLat.lng }}
                         }}));
                     }}
@@ -90,10 +95,11 @@ pub fn add_marker_js(
             // Hover handlers
             marker.getElement().addEventListener('mouseenter', function(e) {{
                 if (window.__dioxus_maplibre_sendEvent) {{
+                    const lngLat = marker.getLngLat();
                     window.__dioxus_maplibre_sendEvent(JSON.stringify({{
                         type: 'marker_hover',
-                        marker_id: '{marker_id}',
-                        latlng: {{ lat: {lat}, lng: {lng} }},
+                        marker_id: {marker_id_lit},
+                        latlng: {{ lat: lngLat.lat, lng: lngLat.lng }},
                         hover: true,
                         cursor_x: e.clientX,
                         cursor_y: e.clientY
@@ -103,10 +109,11 @@ pub fn add_marker_js(
 
             marker.getElement().addEventListener('mouseleave', function(e) {{
                 if (window.__dioxus_maplibre_sendEvent) {{
+                    const lngLat = marker.getLngLat();
                     window.__dioxus_maplibre_sendEvent(JSON.stringify({{
                         type: 'marker_hover',
-                        marker_id: '{marker_id}',
-                        latlng: {{ lat: {lat}, lng: {lng} }},
+                        marker_id: {marker_id_lit},
+                        latlng: {{ lat: lngLat.lat, lng: lngLat.lng }},
                         hover: false,
                         cursor_x: e.clientX,
                         cursor_y: e.clientY
@@ -120,13 +127,15 @@ pub fn add_marker_js(
 
 /// Generate JS to remove a marker
 pub fn remove_marker_js(map_id: &str, marker_id: &str) -> String {
+    let map_id_lit = js_single_quoted(map_id);
+    let marker_id_lit = js_single_quoted(marker_id);
     format!(
         r#"
         (function() {{
-            const markers = window.__dioxus_maplibre_markers['{map_id}'];
-            if (markers && markers['{marker_id}']) {{
-                markers['{marker_id}'].remove();
-                delete markers['{marker_id}'];
+            const markers = window.__dioxus_maplibre_markers && window.__dioxus_maplibre_markers[{map_id_lit}];
+            if (markers && markers[{marker_id_lit}]) {{
+                markers[{marker_id_lit}].remove();
+                delete markers[{marker_id_lit}];
             }}
         }})();
         "#
@@ -135,12 +144,14 @@ pub fn remove_marker_js(map_id: &str, marker_id: &str) -> String {
 
 /// Generate JS to update marker position
 pub fn update_marker_position_js(map_id: &str, marker_id: &str, lat: f64, lng: f64) -> String {
+    let map_id_lit = js_single_quoted(map_id);
+    let marker_id_lit = js_single_quoted(marker_id);
     format!(
         r#"
         (function() {{
-            const markers = window.__dioxus_maplibre_markers['{map_id}'];
-            if (markers && markers['{marker_id}']) {{
-                markers['{marker_id}'].setLngLat([{lng}, {lat}]);
+            const markers = window.__dioxus_maplibre_markers && window.__dioxus_maplibre_markers[{map_id_lit}];
+            if (markers && markers[{marker_id_lit}]) {{
+                markers[{marker_id_lit}].setLngLat([{lng}, {lat}]);
             }}
         }})();
         "#

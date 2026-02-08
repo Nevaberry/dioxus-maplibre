@@ -1,4 +1,5 @@
 //! Async getter MapHandle methods.
+#![allow(clippy::unused_async)]
 
 use super::MapHandle;
 use crate::types::{Bounds, LatLng};

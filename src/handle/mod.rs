@@ -1,4 +1,4 @@
-//! MapHandle — the primary API for interacting with a MapLibre map.
+//! MapHandle - the primary API for interacting with a MapLibre map.
 
 mod controls;
 mod escape_hatch;
@@ -48,6 +48,7 @@ impl MapHandle {
         });
     }
 
+    #[allow(clippy::unused_self)]
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn fire_and_forget(&self, _js_fn: impl FnOnce() -> String) {
         // No-op on non-wasm targets.
@@ -62,6 +63,7 @@ impl MapHandle {
         });
     }
 
+    #[allow(clippy::unused_self)]
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn eval_raw(&self, _js: &str) {}
 }
