@@ -4,7 +4,7 @@ mod pages;
 use pages::*;
 
 const DARK_STYLE: &str = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
-const LIGHT_STYLE: &str = "https://tiles.openfreemap.org/styles/liberty";
+const LIGHT_STYLE: &str = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 fn main() {
     dioxus::launch(App);
@@ -54,8 +54,16 @@ enum Route {
 #[component]
 fn AppLayout() -> Element {
     let mut style = use_context_provider(|| Signal::new(DARK_STYLE.to_string()));
-    let dark_bg = if style().contains("dark-matter") { "#3b82f6" } else { "#333" };
-    let light_bg = if style().contains("dark-matter") { "#333" } else { "#3b82f6" };
+    let dark_bg = if style().contains("dark-matter") {
+        "#3b82f6"
+    } else {
+        "#333"
+    };
+    let light_bg = if style().contains("dark-matter") {
+        "#333"
+    } else {
+        "#3b82f6"
+    };
 
     rsx! {
         div {

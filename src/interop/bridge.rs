@@ -57,8 +57,6 @@ pub fn init_map_js(
     format!(
         r#"
         (async function() {{
-            console.log('[dioxus-maplibre] Initializing map:', '{map_id}');
-
             // Wait for next animation frame to ensure DOM is flushed
             await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
@@ -66,7 +64,6 @@ pub fn init_map_js(
             let attempts = 0;
             const maxAttempts = 100;
             while (typeof maplibregl === 'undefined' && attempts < maxAttempts) {{
-                if (attempts % 10 === 0) console.log(`[dioxus-maplibre] Waiting for maplibregl... attempt ${{attempts + 1}}`);
                 await new Promise(resolve => setTimeout(resolve, 100));
                 attempts++;
             }}
@@ -77,14 +74,11 @@ pub fn init_map_js(
                 return 'error';
             }}
 
-            console.log('[dioxus-maplibre] MapLibre loaded, version:', maplibregl.version || 'unknown');
-
             // Wait for container to be in DOM - try specific ID first, then fall back
             let container = document.getElementById('{container_id}');
             let containerAttempts = 0;
 
             while (!container && containerAttempts < 50) {{
-                if (containerAttempts % 10 === 0) console.log(`[dioxus-maplibre] Waiting for container by ID... ${{containerAttempts}}`);
                 await new Promise(resolve => requestAnimationFrame(resolve));
                 container = document.getElementById('{container_id}');
                 containerAttempts++;
@@ -92,14 +86,12 @@ pub fn init_map_js(
 
             // Fallback: find any map container div that doesn't already have a map
             if (!container) {{
-                console.log('[dioxus-maplibre] ID not found, trying fallback selector...');
                 const mapContainerParent = document.querySelector('.map-container');
                 if (mapContainerParent) {{
                     const candidates = mapContainerParent.querySelectorAll('div[id^="map_"][id$="_container"]');
                     for (const candidate of candidates) {{
                         if (!candidate.querySelector('canvas.maplibregl-canvas')) {{
                             container = candidate;
-                            console.log('[dioxus-maplibre] Found fallback container:', candidate.id);
                             break;
                         }}
                     }}
@@ -113,7 +105,6 @@ pub fn init_map_js(
             }}
 
             const actualContainerId = container.id;
-            console.log(`[dioxus-maplibre] Container found: ${{actualContainerId}} ${{container.offsetWidth}}x${{container.offsetHeight}}`);
 
             // Ensure registry exists
             if (!window.__dioxus_maplibre_maps) {{
@@ -143,29 +134,14 @@ pub fn init_map_js(
             if (!window.__dioxus_maplibre_fog) {{
                 window.__dioxus_maplibre_fog = {{}};
             }}
-            if (!window.__dioxus_maplibre_debug) {{
-                window.__dioxus_maplibre_debug = {{
-                    patch: 'runtime-replay-v5',
-                    setStyleCalls: 0,
-                    replayRuns: 0,
-                    replaySourceAdds: 0,
-                    replayLayerAdds: 0,
-                    lastMapId: null,
-                    lastStyle: null,
-                    lastError: null
-                }};
-            }}
-            window.__dioxus_maplibre_debug.lastMapId = '{map_id}';
 
             // Check if this container already has a map
             if (container.querySelector('canvas.maplibregl-canvas')) {{
-                console.log('[dioxus-maplibre] Container already has a map, skipping init');
                 dioxus.send(JSON.stringify({{ type: 'ready' }}));
                 return 'already_exists';
             }}
 
             if (window.__dioxus_maplibre_maps[actualContainerId]) {{
-                console.log('[dioxus-maplibre] Map already registered for this container');
                 dioxus.send(JSON.stringify({{ type: 'ready' }}));
                 return 'already_exists';
             }}
@@ -184,8 +160,6 @@ pub fn init_map_js(
                     {cooperative_gestures_param}
                     attributionControl: true
                 }});
-
-                console.log('[dioxus-maplibre] Map instance created for container:', actualContainerId);
 
                 // Store map reference under both actual container ID and map_id
                 window.__dioxus_maplibre_maps[actualContainerId] = map;
@@ -275,7 +249,6 @@ pub fn init_map_js(
                 }});
 
                 map.on('load', function() {{
-                    console.log('[dioxus-maplibre] Map loaded, sending ready event');
                     dioxus.send(JSON.stringify({{ type: 'ready' }}));
                     map.fire('moveend');
                 }});
@@ -395,7 +368,6 @@ pub fn add_geojson_source_js(map_id: &str, source_id: &str, options_json: &str) 
                     type: 'geojson',
                     ...opts
                 }});
-                console.log('[dioxus-maplibre] Added GeoJSON source:', '{source_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to add GeoJSON source:', err);
             }}
@@ -425,7 +397,6 @@ pub fn add_vector_source_js(map_id: &str, source_id: &str, options_json: &str) -
                     type: 'vector',
                     ...opts
                 }});
-                console.log('[dioxus-maplibre] Added vector source:', '{source_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to add vector source:', err);
             }}
@@ -455,7 +426,6 @@ pub fn add_raster_source_js(map_id: &str, source_id: &str, options_json: &str) -
                     type: 'raster',
                     ...opts
                 }});
-                console.log('[dioxus-maplibre] Added raster source:', '{source_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to add raster source:', err);
             }}
@@ -485,7 +455,6 @@ pub fn add_raster_dem_source_js(map_id: &str, source_id: &str, options_json: &st
                     type: 'raster-dem',
                     ...opts
                 }});
-                console.log('[dioxus-maplibre] Added raster-dem source:', '{source_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to add raster-dem source:', err);
             }}
@@ -515,7 +484,6 @@ pub fn add_image_source_js(map_id: &str, source_id: &str, options_json: &str) ->
                     type: 'image',
                     ...opts
                 }});
-                console.log('[dioxus-maplibre] Added image source:', '{source_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to add image source:', err);
             }}
@@ -540,7 +508,6 @@ pub fn update_geojson_source_js(map_id: &str, source_id: &str, data_json: &str) 
             if (source) {{
                 try {{
                     source.setData({data_json});
-                    console.log('[dioxus-maplibre] Updated GeoJSON source:', '{source_id}');
                 }} catch (err) {{
                     console.error('[dioxus-maplibre] Failed to update source:', err);
                 }}
@@ -565,7 +532,6 @@ pub fn remove_source_js(map_id: &str, source_id: &str) -> String {
                 if (sourceRegistry) {{
                     delete sourceRegistry['{source_id}'];
                 }}
-                console.log('[dioxus-maplibre] Removed source:', '{source_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to remove source:', err);
             }}
@@ -597,7 +563,6 @@ pub fn add_layer_js(map_id: &str, layer_json: &str) -> String {
                 }}
                 if (map.getLayer(layerDef.id)) return;
                 map.addLayer(layerDef);
-                console.log('[dioxus-maplibre] Added layer:', layerDef.id);
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to add layer:', err);
             }}
@@ -628,7 +593,6 @@ pub fn remove_layer_js(map_id: &str, layer_id: &str) -> String {
                         layerOrder.splice(idx, 1);
                     }}
                 }}
-                console.log('[dioxus-maplibre] Removed layer:', '{layer_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to remove layer:', err);
             }}
@@ -655,7 +619,6 @@ pub fn set_paint_property_js(map_id: &str, layer_id: &str, name: &str, value_jso
                 if (map.getLayer('{layer_id}')) {{
                     map.setPaintProperty('{layer_id}', '{name}', {value_json});
                 }}
-                console.log('[dioxus-maplibre] Set paint property:', '{layer_id}', '{name}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to set paint property:', err);
             }}
@@ -687,7 +650,6 @@ pub fn set_layout_property_js(
                 if (map.getLayer('{layer_id}')) {{
                     map.setLayoutProperty('{layer_id}', '{name}', {value_json});
                 }}
-                console.log('[dioxus-maplibre] Set layout property:', '{layer_id}', '{name}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to set layout property:', err);
             }}
@@ -711,7 +673,6 @@ pub fn set_filter_js(map_id: &str, layer_id: &str, filter_json: &str) -> String 
                 if (map.getLayer('{layer_id}')) {{
                     map.setFilter('{layer_id}', {filter_json});
                 }}
-                console.log('[dioxus-maplibre] Set filter on layer:', '{layer_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to set filter:', err);
             }}
@@ -1332,7 +1293,6 @@ pub fn load_image_js(map_id: &str, image_id: &str, url: &str) -> String {
                 if (!map.hasImage('{image_id}')) {{
                     map.addImage('{image_id}', response.data);
                 }}
-                console.log('[dioxus-maplibre] Loaded image:', '{image_id}');
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to load image:', err);
             }}
@@ -1370,7 +1330,6 @@ pub fn load_image_async_js(map_id: &str, image_id: &str, url: &str) -> String {
                 if (!map.hasImage('{image_id}')) {{
                     map.addImage('{image_id}', response.data);
                 }}
-                console.log('[dioxus-maplibre] Loaded image (async):', '{image_id}');
                 return true;
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to load image:', err);
@@ -1395,7 +1354,6 @@ pub fn remove_image_js(map_id: &str, image_id: &str) -> String {
             if (imageRegistry) {{
                 delete imageRegistry['{image_id}'];
             }}
-            console.log('[dioxus-maplibre] Removed image:', '{image_id}');
         }})();
         "#
     )
@@ -1419,23 +1377,6 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
             const terrainState = window.__dioxus_maplibre_terrain && window.__dioxus_maplibre_terrain['{map_id}'];
             const skyState = window.__dioxus_maplibre_sky && window.__dioxus_maplibre_sky['{map_id}'];
             const fogState = window.__dioxus_maplibre_fog && window.__dioxus_maplibre_fog['{map_id}'];
-            const debugState = window.__dioxus_maplibre_debug || (window.__dioxus_maplibre_debug = {{
-                patch: 'runtime-replay-v5',
-                setStyleCalls: 0,
-                replayRuns: 0,
-                replaySourceAdds: 0,
-                replayLayerAdds: 0,
-                lastMapId: null,
-                lastStyle: null,
-                lastError: null
-            }});
-            debugState.patch = 'runtime-replay-v5';
-            debugState.setStyleCalls += 1;
-            debugState.lastMapId = '{map_id}';
-            debugState.lastStyle = '{style_url}';
-            debugState.lastReplayTrigger = null;
-            debugState.lastReplayStats = null;
-            debugState.lastError = null;
 
             if (!window.__dioxus_maplibre_style_switch_tokens) {{
                 window.__dioxus_maplibre_style_switch_tokens = {{}};
@@ -1443,14 +1384,11 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
             const styleSwitchToken = `${{Date.now()}}_${{Math.random().toString(36).slice(2)}}`;
             window.__dioxus_maplibre_style_switch_tokens['{map_id}'] = styleSwitchToken;
 
-            console.log('[dioxus-maplibre] setStyle requested for map {map_id}:', '{style_url}');
-
             let replayed = false;
             let replayTimeoutId = null;
             let awaitingNewStyle = false;
             const trackedSourceIds = sourceRegistry ? Object.keys(sourceRegistry) : [];
             const trackedLayerIds = layerRegistry ? Object.keys(layerRegistry) : [];
-            let lastWaitState = '';
             let sawStyleData = false;
 
             const replayReadiness = function() {{
@@ -1463,36 +1401,13 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
             const replayRuntimeState = function(trigger) {{
                 const activeToken = window.__dioxus_maplibre_style_switch_tokens
                     && window.__dioxus_maplibre_style_switch_tokens['{map_id}'];
-                if (activeToken !== styleSwitchToken) {{
-                    console.log('[dioxus-maplibre] Skipping stale style replay for map {map_id}');
-                    return;
-                }}
+                if (activeToken !== styleSwitchToken) return;
                 if (replayed) {{
                     return;
                 }}
                 replayed = true;
                 awaitingNewStyle = false;
-                debugState.lastReplayTrigger = trigger;
                 try {{
-                    debugState.replayRuns += 1;
-                    const sourceCount = sourceRegistry ? Object.keys(sourceRegistry).length : 0;
-                    const layerCount = layerRegistry ? Object.keys(layerRegistry).length : 0;
-                    const imageCount = imageRegistry ? Object.keys(imageRegistry).length : 0;
-                    debugState.lastReplayStats = {{
-                        sourceCount,
-                        layerCount,
-                        imageCount,
-                        orderedLayerCount: layerOrder ? layerOrder.length : 0
-                    }};
-                    console.log(
-                        '[dioxus-maplibre] Replaying runtime state after style change for map {map_id}'
-                        + ' trigger=' + trigger
-                        + ' sources=' + sourceCount
-                        + ' layers=' + layerCount
-                        + ' images=' + imageCount
-                        + ' ordered_layers=' + (layerOrder ? layerOrder.length : 0)
-                    );
-
                     if (sourceRegistry) {{
                         for (const [sourceId, sourceDef] of Object.entries(sourceRegistry)) {{
                             try {{
@@ -1505,10 +1420,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                                     type: sourceDef.type,
                                     ...options
                                 }});
-                                debugState.replaySourceAdds += 1;
-                                console.log('[dioxus-maplibre] Replayed source:', sourceId, sourceDef.type);
                             }} catch (err) {{
-                                debugState.lastError = String(err);
                                 console.error('[dioxus-maplibre] Failed replaying source:', sourceId, err);
                             }}
                         }}
@@ -1525,10 +1437,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                             if (map.getLayer(layerId)) continue;
                             const layerToAdd = JSON.parse(JSON.stringify(layerDef));
                             map.addLayer(layerToAdd);
-                            debugState.replayLayerAdds += 1;
-                            console.log('[dioxus-maplibre] Replayed layer:', layerId);
                         }} catch (err) {{
-                            debugState.lastError = String(err);
                             console.error('[dioxus-maplibre] Failed replaying layer:', layerId, err);
                         }}
                     }}
@@ -1536,9 +1445,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                     if (terrainState && terrainState.hasValue) {{
                         try {{
                             map.setTerrain(terrainState.value);
-                            console.log('[dioxus-maplibre] Replayed terrain state');
                         }} catch (err) {{
-                            debugState.lastError = String(err);
                             console.error('[dioxus-maplibre] Failed replaying terrain state:', err);
                         }}
                     }}
@@ -1546,9 +1453,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                     if (skyState && skyState.hasValue) {{
                         try {{
                             map.setSky(skyState.value);
-                            console.log('[dioxus-maplibre] Replayed sky state');
                         }} catch (err) {{
-                            debugState.lastError = String(err);
                             console.error('[dioxus-maplibre] Failed replaying sky state:', err);
                         }}
                     }}
@@ -1556,9 +1461,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                     if (fogState && fogState.hasValue) {{
                         try {{
                             map.setFog(fogState.value);
-                            console.log('[dioxus-maplibre] Replayed fog state');
                         }} catch (err) {{
-                            debugState.lastError = String(err);
                             console.error('[dioxus-maplibre] Failed replaying fog state:', err);
                         }}
                     }}
@@ -1570,18 +1473,13 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                                 if (!response || !response.data) return;
                                 if (!map.hasImage(imageId)) {{
                                     map.addImage(imageId, response.data);
-                                    console.log('[dioxus-maplibre] Replayed image:', imageId);
                                 }}
                             }}).catch((err) => {{
-                                debugState.lastError = String(err);
                                 console.error('[dioxus-maplibre] Failed replaying image:', imageId, err);
                             }});
                         }}
                     }}
-
-                    console.log('[dioxus-maplibre] Runtime replay complete for map {map_id}');
                 }} catch (err) {{
-                    debugState.lastError = String(err);
                     console.error('[dioxus-maplibre] Runtime replay failed for map {map_id}:', err);
                 }} finally {{
                     if (replayTimeoutId != null) {{
@@ -1599,21 +1497,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
                 const readiness = replayReadiness();
                 const canReplayWithoutLoaded = sawStyleData && readiness.sourcesGone && readiness.layersGone;
                 const canReplayNormally = readiness.styleLoaded && readiness.sourcesGone && readiness.layersGone;
-                if (!force && !canReplayNormally && !canReplayWithoutLoaded) {{
-                    const waitState = `${{readiness.styleLoaded}}|${{readiness.sourcesGone}}|${{readiness.layersGone}}|${{sawStyleData}}`;
-                    if (waitState !== lastWaitState) {{
-                        lastWaitState = waitState;
-                        console.log(
-                            '[dioxus-maplibre] Waiting replay for map {map_id}'
-                            + ' trigger=' + trigger
-                            + ' styleLoaded=' + readiness.styleLoaded
-                            + ' sourcesGone=' + readiness.sourcesGone
-                            + ' layersGone=' + readiness.layersGone
-                            + ' sawStyleData=' + sawStyleData
-                        );
-                    }}
-                    return;
-                }}
+                if (!force && !canReplayNormally && !canReplayWithoutLoaded) return;
                 replayRuntimeState(force ? `${{trigger}}+forced` : trigger);
             }};
 
@@ -1653,7 +1537,6 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
             }}, 0);
 
             replayTimeoutId = setTimeout(function() {{
-                console.warn('[dioxus-maplibre] Timed out waiting for style.load, forcing replay for map {map_id}');
                 maybeReplay('timeout', true);
             }}, 6000);
         }})();
@@ -1678,7 +1561,6 @@ pub fn set_terrain_js(map_id: &str, options_json: &str) -> String {
                 terrainState.hasValue = true;
                 terrainState.value = JSON.parse(JSON.stringify({options_json}));
             }}
-            console.log('[dioxus-maplibre] Set terrain for map {map_id}');
         }})();
         "#
     )
@@ -1697,7 +1579,6 @@ pub fn remove_terrain_js(map_id: &str) -> String {
                 terrainState.hasValue = true;
                 terrainState.value = null;
             }}
-            console.log('[dioxus-maplibre] Removed terrain for map {map_id}');
         }})();
         "#
     )
@@ -1716,7 +1597,6 @@ pub fn set_sky_js(map_id: &str, options_json: &str) -> String {
                 skyState.hasValue = true;
                 skyState.value = JSON.parse(JSON.stringify({options_json}));
             }}
-            console.log('[dioxus-maplibre] Set sky for map {map_id}');
         }})();
         "#
     )
@@ -1735,7 +1615,6 @@ pub fn remove_sky_js(map_id: &str) -> String {
                 skyState.hasValue = true;
                 skyState.value = null;
             }}
-            console.log('[dioxus-maplibre] Removed sky for map {map_id}');
         }})();
         "#
     )
@@ -1758,7 +1637,6 @@ pub fn set_fog_js(map_id: &str, options_json: &str) -> String {
                 fogState.hasValue = true;
                 fogState.value = JSON.parse(JSON.stringify({options_json}));
             }}
-            console.log('[dioxus-maplibre] Set fog for map {map_id}');
         }})();
         "#
     )
@@ -1777,7 +1655,6 @@ pub fn remove_fog_js(map_id: &str) -> String {
                 fogState.hasValue = true;
                 fogState.value = null;
             }}
-            console.log('[dioxus-maplibre] Removed fog for map {map_id}');
         }})();
         "#
     )
@@ -1849,7 +1726,6 @@ pub fn move_layer_js(map_id: &str, layer_id: &str, before_id: Option<&str>) -> S
                         layerOrder.push('{layer_id}');
                     }}
                 }}
-                console.log('[dioxus-maplibre] Moved layer:', '{layer_id}', 'before', {before_id_lit});
             }} catch (err) {{
                 console.error('[dioxus-maplibre] Failed to move layer:', err);
             }}

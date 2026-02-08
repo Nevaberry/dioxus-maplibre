@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{Map, MapHandle, LatLng};
+use dioxus_maplibre::{LatLng, Map, MapHandle};
 
 struct StyleEntry {
     name: &'static str,
