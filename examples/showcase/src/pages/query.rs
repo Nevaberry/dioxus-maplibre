@@ -167,6 +167,7 @@ pub fn Query() -> Element {
     let mut query_result = use_signal(|| String::new());
     let mut feature_count = use_signal(|| 0usize);
     let mut move_event_count = use_signal(|| 0usize);
+    let mut move_event_throttle_ms = use_signal(|| 80u32);
     let debug_log = use_signal(Vec::<String>::new);
     let style: Signal<String> = use_context();
 
@@ -177,6 +178,7 @@ pub fn Query() -> Element {
                     style: style(),
                     center: LatLng::new(60.17, 24.94),
                     zoom: 13.0,
+                    move_event_throttle_ms: move_event_throttle_ms(),
                     on_ready: move |handle: MapHandle| {
                         emit_debug(debug_log, "INFO", format!("on_ready fired map_id={}", handle.map_id()));
 
@@ -207,18 +209,6 @@ pub fn Query() -> Element {
                                 "circle-stroke-color": "#fff"
                             }))
                         );
-
-                        let map = handle.clone();
-                        spawn(async move {
-                            refresh_viewport_count(
-                                map,
-                                feature_count,
-                                query_result,
-                                debug_log,
-                                "initial".to_string(),
-                            )
-                            .await;
-                        });
 
                         map_handle.set(Some(handle));
                     },
@@ -302,6 +292,71 @@ pub fn Query() -> Element {
                 p { "Click on a point to query its properties." }
                 p { "20 points in two categories (A=blue, B=red)." }
                 p { style: "color: #9ec9ff;", "Move events observed: {move_event_count}" }
+                p { style: "color: #9ec9ff; margin-top: 8px;", "Move throttle: {move_event_throttle_ms} ms" }
+                input {
+                    "data-testid": "move-throttle-range",
+                    style: "width: 100%; margin-top: 4px;",
+                    r#type: "range",
+                    min: "0",
+                    max: "320",
+                    step: "10",
+                    value: "{move_event_throttle_ms}",
+                    oninput: move |evt| {
+                        if let Ok(parsed) = evt.value().parse::<u32>() {
+                            if parsed != move_event_throttle_ms() {
+                                move_event_throttle_ms.set(parsed);
+                                emit_debug(debug_log, "INFO", format!("move event throttle set to {parsed}ms"));
+                            }
+                        }
+                    }
+                }
+                div { style: "display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;",
+                    button {
+                        style: "padding: 4px 8px; border-radius: 4px; border: none; background: #2d6cdf; color: white; cursor: pointer;",
+                        onclick: move |_| {
+                            let next = 40_u32;
+                            if move_event_throttle_ms() != next {
+                                move_event_throttle_ms.set(next);
+                                emit_debug(debug_log, "INFO", format!("move event throttle set to {next}ms"));
+                            }
+                        },
+                        "40ms"
+                    }
+                    button {
+                        style: "padding: 4px 8px; border-radius: 4px; border: none; background: #2d6cdf; color: white; cursor: pointer;",
+                        onclick: move |_| {
+                            let next = 80_u32;
+                            if move_event_throttle_ms() != next {
+                                move_event_throttle_ms.set(next);
+                                emit_debug(debug_log, "INFO", format!("move event throttle set to {next}ms"));
+                            }
+                        },
+                        "80ms"
+                    }
+                    button {
+                        style: "padding: 4px 8px; border-radius: 4px; border: none; background: #2d6cdf; color: white; cursor: pointer;",
+                        onclick: move |_| {
+                            let next = 120_u32;
+                            if move_event_throttle_ms() != next {
+                                move_event_throttle_ms.set(next);
+                                emit_debug(debug_log, "INFO", format!("move event throttle set to {next}ms"));
+                            }
+                        },
+                        "120ms"
+                    }
+                    button {
+                        style: "padding: 4px 8px; border-radius: 4px; border: none; background: #2d6cdf; color: white; cursor: pointer;",
+                        onclick: move |_| {
+                            let next = 200_u32;
+                            if move_event_throttle_ms() != next {
+                                move_event_throttle_ms.set(next);
+                                emit_debug(debug_log, "INFO", format!("move event throttle set to {next}ms"));
+                            }
+                        },
+                        "200ms"
+                    }
+                }
+                p { style: "margin-top: 4px; color: #a8b2c3;", "Lower = smoother updates, higher = less CPU/event load." }
 
                 if let Some(ref map) = *map_handle.read() {
                     div { style: "margin-top: 16px;",

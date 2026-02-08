@@ -40,6 +40,7 @@ pub fn init_map_js(
     max_zoom: Option<f64>,
     max_bounds: Option<&str>,
     cooperative_gestures: Option<bool>,
+    move_event_throttle_ms: u32,
 ) -> String {
     let min_zoom_param = min_zoom
         .map(|z| format!("minZoom: {z},"))
@@ -169,6 +170,12 @@ pub fn init_map_js(
                     attributionControl: true
                 }});
 
+                const initialMoveEventThrottleMs = Number({move_event_throttle_ms});
+                map.__dioxusMoveEventThrottleMs =
+                    Number.isFinite(initialMoveEventThrottleMs) && initialMoveEventThrottleMs >= 0
+                        ? initialMoveEventThrottleMs
+                        : 80;
+
                 // Store map reference under both actual container ID and map_id
                 window.__dioxus_maplibre_maps[actualContainerId] = map;
                 window.__dioxus_maplibre_markers[actualContainerId] = {{}};
@@ -198,7 +205,8 @@ pub fn init_map_js(
                     center: {{ lat: {center_lat}, lng: {center_lng} }},
                     zoom: {zoom},
                     bearing: {bearing},
-                    pitch: {pitch}
+                    pitch: {pitch},
+                    moveEventThrottleMs: map.__dioxusMoveEventThrottleMs
                 }});
 
                 // Global event sender for cross-eval communication
@@ -271,10 +279,18 @@ pub fn init_map_js(
                     }}));
                 }};
 
-                const MOVE_EVENT_THROTTLE_MS = 80;
+                const DEFAULT_MOVE_EVENT_THROTTLE_MS = 80;
                 let moveRafId = null;
                 let movePending = false;
                 let lastMoveEmitAt = 0;
+
+                const getMoveEventThrottleMs = function() {{
+                    const value = Number(map.__dioxusMoveEventThrottleMs);
+                    if (!Number.isFinite(value) || value < 0) {{
+                        return DEFAULT_MOVE_EVENT_THROTTLE_MS;
+                    }}
+                    return value;
+                }};
 
                 const scheduleMoveEmit = function() {{
                     if (moveRafId !== null) {{
@@ -289,7 +305,8 @@ pub fn init_map_js(
                         const now = (typeof performance !== 'undefined' && performance.now)
                             ? performance.now()
                             : Date.now();
-                        if ((now - lastMoveEmitAt) < MOVE_EVENT_THROTTLE_MS) {{
+                        const throttleMs = getMoveEventThrottleMs();
+                        if ((now - lastMoveEmitAt) < throttleMs) {{
                             movePending = true;
                             scheduleMoveEmit();
                             return;
@@ -1466,6 +1483,20 @@ pub fn remove_image_js(map_id: &str, image_id: &str) -> String {
 // =============================================================================
 // Style
 // =============================================================================
+
+/// Generate JS to set move event throttle in milliseconds at runtime
+pub fn set_move_event_throttle_js(map_id: &str, throttle_ms: u32) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            const value = Number({throttle_ms});
+            map.__dioxusMoveEventThrottleMs = Number.isFinite(value) && value >= 0 ? value : 80;
+        }})();
+        "#
+    )
+}
 
 /// Generate JS to set the map style
 pub fn set_style_js(map_id: &str, style_url: &str) -> String {

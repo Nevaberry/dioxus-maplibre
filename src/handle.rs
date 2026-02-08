@@ -347,6 +347,13 @@ impl MapHandle {
         self.fire_and_forget(|| crate::interop::reset_north_js(&self.map_id));
     }
 
+    /// Set throttle for `on_move` events in milliseconds (0 = every animation frame)
+    pub fn set_move_event_throttle(&self, throttle_ms: u32) {
+        self.fire_and_forget(|| {
+            crate::interop::set_move_event_throttle_js(&self.map_id, throttle_ms)
+        });
+    }
+
     // =========================================================================
     // Feature State
     // =========================================================================

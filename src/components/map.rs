@@ -58,6 +58,10 @@ pub struct MapProps {
     #[props(default = "100%".to_string())]
     pub width: String,
 
+    /// Throttle for `on_move` updates in milliseconds (0 = every animation frame)
+    #[props(default = 80)]
+    pub move_event_throttle_ms: u32,
+
     /// Called when the map is ready with a MapHandle
     #[props(optional)]
     pub on_ready: Option<EventHandler<MapHandle>>,
@@ -150,7 +154,7 @@ pub fn Map(props: MapProps) -> Element {
 
     #[cfg(target_arch = "wasm32")]
     {
-        use crate::interop::{destroy_map_js, init_map_js};
+        use crate::interop::{destroy_map_js, init_map_js, set_move_event_throttle_js};
         use tracing::debug;
 
         let style = props.style.clone();
@@ -162,6 +166,7 @@ pub fn Map(props: MapProps) -> Element {
         let max_zoom = props.max_zoom;
         let max_bounds = props.max_bounds;
         let cooperative_gestures = props.cooperative_gestures;
+        let move_event_throttle_ms = props.move_event_throttle_ms;
         let on_ready = props.on_ready;
         let on_click = props.on_click;
         let on_dblclick = props.on_dblclick;
@@ -215,6 +220,7 @@ pub fn Map(props: MapProps) -> Element {
                         max_zoom,
                         max_bounds_str.as_deref(),
                         cooperative_gestures,
+                        move_event_throttle_ms,
                     );
 
                     let mut eval = document::eval(&init_js);
@@ -350,6 +356,20 @@ pub fn Map(props: MapProps) -> Element {
                 tracked_style.set(new_style.clone());
                 spawn(async move {
                     let js = crate::interop::set_style_js(&map_id, &new_style);
+                    let _ = document::eval(&js).await;
+                });
+            }
+        }
+
+        // Live move throttle switching: detect prop changes after initialization
+        {
+            let mut tracked_move_throttle = use_signal(|| props.move_event_throttle_ms);
+            if tracked_move_throttle() != props.move_event_throttle_ms && init_started() {
+                let map_id = map_id.clone();
+                let new_throttle = props.move_event_throttle_ms;
+                tracked_move_throttle.set(new_throttle);
+                spawn(async move {
+                    let js = set_move_event_throttle_js(&map_id, new_throttle);
                     let _ = document::eval(&js).await;
                 });
             }
