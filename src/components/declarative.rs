@@ -8,7 +8,7 @@ use crate::options::{
 };
 use crate::types::LatLng;
 
-use super::context::use_map_handle;
+use super::context::try_use_map_handle_signal;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MapSourceKind {
@@ -39,18 +39,21 @@ pub struct MapSourceProps {
 
 #[component]
 pub fn MapSource(props: MapSourceProps) -> Element {
-    let handle = use_map_handle();
+    let handle_signal = try_use_map_handle_signal();
     let mut installed = use_signal(|| false);
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let id = props.id.clone();
         let source = props.source.clone();
         use_effect(move || {
             if installed() {
                 return;
             }
-            let Some(map) = handle.clone() else {
+            let Some(handle_signal) = handle_signal else {
+                return;
+            };
+            let Some(map) = handle_signal() else {
                 return;
             };
             match &source {
@@ -67,10 +70,12 @@ pub fn MapSource(props: MapSourceProps) -> Element {
     }
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let id = props.id.clone();
         use_drop(move || {
-            if let Some(map) = handle {
+            if let Some(handle_signal) = handle_signal
+                && let Some(map) = handle_signal.peek().clone()
+            {
                 map.remove_source(&id);
             }
         });
@@ -91,11 +96,11 @@ pub struct MapLayerProps {
 
 #[component]
 pub fn MapLayer(props: MapLayerProps) -> Element {
-    let handle = use_map_handle();
+    let handle_signal = try_use_map_handle_signal();
     let mut installed = use_signal(|| false);
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let options = props.options.clone();
         let register_click = props.register_click_events;
         let register_hover = props.register_hover_events;
@@ -103,7 +108,10 @@ pub fn MapLayer(props: MapLayerProps) -> Element {
             if installed() {
                 return;
             }
-            let Some(map) = handle.clone() else {
+            let Some(handle_signal) = handle_signal else {
+                return;
+            };
+            let Some(map) = handle_signal() else {
                 return;
             };
             let layer_id = options.id.clone();
@@ -119,10 +127,12 @@ pub fn MapLayer(props: MapLayerProps) -> Element {
     }
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let layer_id = props.options.id.clone();
         use_drop(move || {
-            if let Some(map) = handle {
+            if let Some(handle_signal) = handle_signal
+                && let Some(map) = handle_signal.peek().clone()
+            {
                 map.remove_layer(&layer_id);
             }
         });
@@ -142,17 +152,20 @@ pub struct MapMarkerProps {
 
 #[component]
 pub fn MapMarker(props: MapMarkerProps) -> Element {
-    let handle = use_map_handle();
+    let handle_signal = try_use_map_handle_signal();
     let mut installed = use_signal(|| false);
     let mut last_position = use_signal(|| props.position);
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let id = props.id.clone();
         let options = props.options.clone();
         let position = props.position;
         use_effect(move || {
-            let Some(map) = handle.clone() else {
+            let Some(handle_signal) = handle_signal else {
+                return;
+            };
+            let Some(map) = handle_signal() else {
                 return;
             };
             if !installed() {
@@ -169,10 +182,12 @@ pub fn MapMarker(props: MapMarkerProps) -> Element {
     }
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let id = props.id.clone();
         use_drop(move || {
-            if let Some(map) = handle {
+            if let Some(handle_signal) = handle_signal
+                && let Some(map) = handle_signal.peek().clone()
+            {
                 map.remove_marker(&id);
             }
         });
@@ -193,11 +208,11 @@ pub struct MapPopupProps {
 
 #[component]
 pub fn MapPopup(props: MapPopupProps) -> Element {
-    let handle = use_map_handle();
+    let handle_signal = try_use_map_handle_signal();
     let mut installed = use_signal(|| false);
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let id = props.id.clone();
         let position = props.position;
         let html = props.html.clone();
@@ -206,7 +221,10 @@ pub fn MapPopup(props: MapPopupProps) -> Element {
             if installed() {
                 return;
             }
-            let Some(map) = handle.clone() else {
+            let Some(handle_signal) = handle_signal else {
+                return;
+            };
+            let Some(map) = handle_signal() else {
                 return;
             };
             map.add_popup(&id, position, &html, options.clone());
@@ -215,10 +233,12 @@ pub fn MapPopup(props: MapPopupProps) -> Element {
     }
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let id = props.id.clone();
         use_drop(move || {
-            if let Some(map) = handle {
+            if let Some(handle_signal) = handle_signal
+                && let Some(map) = handle_signal.peek().clone()
+            {
                 map.remove_popup(&id);
             }
         });
@@ -237,18 +257,21 @@ pub struct MapControlProps {
 
 #[component]
 pub fn MapControl(props: MapControlProps) -> Element {
-    let handle = use_map_handle();
+    let handle_signal = try_use_map_handle_signal();
     let mut installed = use_signal(|| false);
 
     {
-        let handle = handle.clone();
+        let handle_signal = handle_signal;
         let kind = props.kind;
         let position = props.position;
         use_effect(move || {
             if installed() {
                 return;
             }
-            let Some(map) = handle.clone() else {
+            let Some(handle_signal) = handle_signal else {
+                return;
+            };
+            let Some(map) = handle_signal() else {
                 return;
             };
             match kind {
