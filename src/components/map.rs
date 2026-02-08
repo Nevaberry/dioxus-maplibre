@@ -155,7 +155,6 @@ pub fn Map(props: MapProps) -> Element {
     #[cfg(target_arch = "wasm32")]
     {
         use crate::interop::{destroy_map_js, init_map_js, set_move_event_throttle_js};
-        use tracing::debug;
 
         let style = props.style.clone();
         let center = props.center;
@@ -188,7 +187,6 @@ pub fn Map(props: MapProps) -> Element {
 
             use_effect(move || {
                 if init_started() {
-                    debug!("Map init already started, skipping");
                     return;
                 }
                 init_started.set(true);
@@ -203,8 +201,6 @@ pub fn Map(props: MapProps) -> Element {
                         b.sw.lng, b.sw.lat, b.ne.lng, b.ne.lat
                     )
                 });
-
-                debug!("Starting map initialization for: {}", map_id);
 
                 spawn(async move {
                     let init_js = init_map_js(
@@ -224,19 +220,15 @@ pub fn Map(props: MapProps) -> Element {
                     );
 
                     let mut eval = document::eval(&init_js);
-                    debug!("Map init JS executed for: {}", map_id);
 
                     loop {
                         match eval.recv::<String>().await {
                             Ok(json) => {
-                                debug!("Received event: {}", json);
-
                                 if let Ok(event) =
                                     serde_json::from_str::<serde_json::Value>(&json)
                                 {
                                     match event.get("type").and_then(|t| t.as_str()) {
                                         Some("ready") => {
-                                            debug!("Map ready!");
                                             let handle = MapHandle::new(map_id.clone());
                                             if let Some(handler) = &on_ready {
                                                 handler.call(handle);
@@ -337,8 +329,7 @@ pub fn Map(props: MapProps) -> Element {
                                     }
                                 }
                             }
-                            Err(e) => {
-                                debug!("Event channel closed: {:?}", e);
+                            Err(_e) => {
                                 break;
                             }
                         }
@@ -379,7 +370,6 @@ pub fn Map(props: MapProps) -> Element {
         {
             let map_id = map_id.clone();
             use_drop(move || {
-                debug!("Cleaning up map: {}", map_id);
                 let cleanup_js = destroy_map_js(&map_id);
                 spawn(async move {
                     let _ = document::eval(&cleanup_js).await;

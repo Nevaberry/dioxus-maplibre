@@ -148,14 +148,6 @@ pub fn init_map_js(
             }}
 
             try {{
-                const _dbg = (label, payload) => {{
-                    try {{
-                        console.log(label + ' ' + JSON.stringify(payload));
-                    }} catch (_err) {{
-                        console.log(label);
-                    }}
-                }};
-
                 const map = new maplibregl.Map({{
                     container: container,
                     style: '{style}',
@@ -197,18 +189,6 @@ pub fn init_map_js(
                 window.__dioxus_maplibre_sky['{map_id}'] = window.__dioxus_maplibre_sky[actualContainerId];
                 window.__dioxus_maplibre_fog['{map_id}'] = window.__dioxus_maplibre_fog[actualContainerId];
 
-                _dbg('[dioxus-maplibre][init] map created', {{
-                    mapId: '{map_id}',
-                    requestedContainerId: '{container_id}',
-                    actualContainerId,
-                    style: '{style}',
-                    center: {{ lat: {center_lat}, lng: {center_lng} }},
-                    zoom: {zoom},
-                    bearing: {bearing},
-                    pitch: {pitch},
-                    moveEventThrottleMs: map.__dioxusMoveEventThrottleMs
-                }});
-
                 // Global event sender for cross-eval communication
                 window.__dioxus_maplibre_sendEvent = function(eventJson) {{
                     dioxus.send(eventJson);
@@ -217,11 +197,6 @@ pub fn init_map_js(
                 // --- Event listeners ---
 
                 map.on('click', function(e) {{
-                    _dbg('[dioxus-maplibre][event] click', {{
-                        mapId: '{map_id}',
-                        latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
-                        point: {{ x: e.point.x, y: e.point.y }}
-                    }});
                     dioxus.send(JSON.stringify({{
                         type: 'click',
                         latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
@@ -230,11 +205,6 @@ pub fn init_map_js(
                 }});
 
                 map.on('dblclick', function(e) {{
-                    _dbg('[dioxus-maplibre][event] dblclick', {{
-                        mapId: '{map_id}',
-                        latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
-                        point: {{ x: e.point.x, y: e.point.y }}
-                    }});
                     dioxus.send(JSON.stringify({{
                         type: 'dblclick',
                         latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
@@ -243,11 +213,6 @@ pub fn init_map_js(
                 }});
 
                 map.on('contextmenu', function(e) {{
-                    _dbg('[dioxus-maplibre][event] contextmenu', {{
-                        mapId: '{map_id}',
-                        latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
-                        point: {{ x: e.point.x, y: e.point.y }}
-                    }});
                     dioxus.send(JSON.stringify({{
                         type: 'contextmenu',
                         latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
@@ -258,15 +223,6 @@ pub fn init_map_js(
                 const emitMoveEvent = function(eventName) {{
                     const center = map.getCenter();
                     const bounds = map.getBounds();
-                    _dbg(`[dioxus-maplibre][event] ${{eventName}}`, {{
-                        mapId: '{map_id}',
-                        center: {{ lat: center.lat, lng: center.lng }},
-                        zoom: map.getZoom(),
-                        bounds: {{
-                            sw: {{ lat: bounds.getSouth(), lng: bounds.getWest() }},
-                            ne: {{ lat: bounds.getNorth(), lng: bounds.getEast() }}
-                        }}
-                    }});
                     dioxus.send(JSON.stringify({{
                         type: 'move',
                         phase: eventName,
@@ -331,10 +287,6 @@ pub fn init_map_js(
                 }});
 
                 map.on('zoomend', function() {{
-                    _dbg('[dioxus-maplibre][event] zoomend', {{
-                        mapId: '{map_id}',
-                        zoom: map.getZoom()
-                    }});
                     dioxus.send(JSON.stringify({{
                         type: 'zoom',
                         zoom: map.getZoom()
@@ -342,10 +294,6 @@ pub fn init_map_js(
                 }});
 
                 map.on('rotateend', function() {{
-                    _dbg('[dioxus-maplibre][event] rotateend', {{
-                        mapId: '{map_id}',
-                        bearing: map.getBearing()
-                    }});
                     dioxus.send(JSON.stringify({{
                         type: 'rotate',
                         bearing: map.getBearing()
@@ -353,10 +301,6 @@ pub fn init_map_js(
                 }});
 
                 map.on('pitchend', function() {{
-                    _dbg('[dioxus-maplibre][event] pitchend', {{
-                        mapId: '{map_id}',
-                        pitch: map.getPitch()
-                    }});
                     dioxus.send(JSON.stringify({{
                         type: 'pitch',
                         pitch: map.getPitch()
@@ -364,13 +308,7 @@ pub fn init_map_js(
                 }});
 
                 map.on('load', function() {{
-                    _dbg('[dioxus-maplibre][event] load', {{
-                        mapId: '{map_id}',
-                        styleLoaded: typeof map.isStyleLoaded === 'function' ? map.isStyleLoaded() : null,
-                        loaded: typeof map.loaded === 'function' ? map.loaded() : null
-                    }});
                     dioxus.send(JSON.stringify({{ type: 'ready' }}));
-                    _dbg('[dioxus-maplibre][event] synthetic initial move emit after load', {{ mapId: '{map_id}' }});
                     emitMoveEvent('move_load');
                 }});
 
@@ -455,7 +393,6 @@ fn find_map_js(map_id: &str) -> String {
                 const mapKeys = Object.keys(mapRegistry);
                 if (mapKeys.length === 1) {{
                     map = mapRegistry[mapKeys[0]];
-                    console.warn('[dioxus-maplibre] map id not found, using sole map instance', '{map_id}', '=>', mapKeys[0]);
                 }} else {{
                     console.error('[dioxus-maplibre] map id not found', '{map_id}', 'available maps:', mapKeys);
                     return;
@@ -1955,61 +1892,9 @@ pub fn query_rendered_features_js(map_id: &str, options_json: &str) -> String {
         (function() {{
             {find}
             try {{
-                const _dbg = (label, payload) => {{
-                    try {{
-                        console.log(label + ' ' + JSON.stringify(payload));
-                    }} catch (_err) {{
-                        console.log(label);
-                    }}
-                }};
-                const _warn = (label, payload) => {{
-                    try {{
-                        console.warn(label + ' ' + JSON.stringify(payload));
-                    }} catch (_err) {{
-                        console.warn(label);
-                    }}
-                }};
-
                 const opts = {options_json};
-                const hasOptions = opts && Object.keys(opts).length > 0;
-                const center = map.getCenter();
-                const bounds = map.getBounds();
-                const style = typeof map.getStyle === 'function' ? map.getStyle() : null;
-                const styleLayerIds = style && Array.isArray(style.layers)
-                    ? style.layers.map(layer => layer.id)
-                    : [];
-                const styleSourceIds = style && style.sources
-                    ? Object.keys(style.sources)
-                    : [];
+                const hasOptions = !!(opts && Object.keys(opts).length > 0);
                 const requestedLayers = opts && Array.isArray(opts.layers) ? opts.layers : [];
-                const missingLayers = requestedLayers.filter(id => !styleLayerIds.includes(id));
-
-                _dbg('[dioxus-maplibre][query_rendered_features] start', {{
-                    mapId: '{map_id}',
-                    hasOptions,
-                    opts,
-                    center: {{ lat: center.lat, lng: center.lng }},
-                    zoom: map.getZoom(),
-                    styleLoaded: typeof map.isStyleLoaded === 'function' ? map.isStyleLoaded() : null,
-                    loaded: typeof map.loaded === 'function' ? map.loaded() : null,
-                    bounds: {{
-                        sw: {{ lat: bounds.getSouth(), lng: bounds.getWest() }},
-                        ne: {{ lat: bounds.getNorth(), lng: bounds.getEast() }}
-                    }},
-                    requestedLayers,
-                    missingLayers,
-                    styleLayerCount: styleLayerIds.length,
-                    styleLayerIds,
-                    styleSourceIds
-                }});
-
-                if (missingLayers.length > 0) {{
-                    _warn('[dioxus-maplibre][query_rendered_features] requested layers missing from style', {{
-                        mapId: '{map_id}',
-                        requestedLayers,
-                        missingLayers
-                    }});
-                }}
 
                 let features = hasOptions
                     ? map.queryRenderedFeatures(undefined, opts)
@@ -2017,45 +1902,10 @@ pub fn query_rendered_features_js(map_id: &str, options_json: &str) -> String {
 
                 if (hasOptions && requestedLayers.length > 0 && features.length === 0) {{
                     const layerSet = new Set(requestedLayers);
-                    const fallback = map
+                    features = map
                         .queryRenderedFeatures()
                         .filter(f => f && f.layer && layerSet.has(f.layer.id));
-                    _dbg('[dioxus-maplibre][query_rendered_features] layers fallback', {{
-                        mapId: '{map_id}',
-                        requestedLayers,
-                        fallbackCount: fallback.length
-                    }});
-                    features = fallback;
                 }}
-
-                if (hasOptions) {{
-                    try {{
-                        const legacyFeatures = map.queryRenderedFeatures(opts);
-                        _dbg('[dioxus-maplibre][query_rendered_features] signature comparison', {{
-                            mapId: '{map_id}',
-                            twoArgCount: features.length,
-                            oneArgCount: legacyFeatures.length
-                        }});
-                    }} catch (legacyErr) {{
-                        _warn('[dioxus-maplibre][query_rendered_features] legacy one-arg signature failed', {{
-                            mapId: '{map_id}',
-                            error: legacyErr && legacyErr.message ? legacyErr.message : String(legacyErr)
-                        }});
-                    }}
-                }}
-
-                const sample = features.slice(0, 3).map(f => ({{
-                    id: f.id !== undefined ? f.id : null,
-                    source: f.source,
-                    sourceLayer: f.sourceLayer || null,
-                    properties: f.properties || {{}}
-                }}));
-
-                _dbg('[dioxus-maplibre][query_rendered_features] result', {{
-                    mapId: '{map_id}',
-                    count: features.length,
-                    sample
-                }});
 
                 return features.map(f => ({{
                     id: Number.isFinite(f.id) ? Math.trunc(f.id) : null,
@@ -2065,10 +1915,7 @@ pub fn query_rendered_features_js(map_id: &str, options_json: &str) -> String {
                     sourceLayer: f.sourceLayer || null
                 }}));
             }} catch (err) {{
-                console.error('[dioxus-maplibre] Failed to query rendered features:', {{
-                    mapId: '{map_id}',
-                    error: err && err.message ? err.message : String(err)
-                }});
+                console.error('[dioxus-maplibre] Failed to query rendered features:', err);
                 return [];
             }}
         }})();
@@ -2084,84 +1931,17 @@ pub fn query_rendered_features_at_js(map_id: &str, x: f64, y: f64, options_json:
         (function() {{
             {find}
             try {{
-                const _dbg = (label, payload) => {{
-                    try {{
-                        console.log(label + ' ' + JSON.stringify(payload));
-                    }} catch (_err) {{
-                        console.log(label);
-                    }}
-                }};
-                const _warn = (label, payload) => {{
-                    try {{
-                        console.warn(label + ' ' + JSON.stringify(payload));
-                    }} catch (_err) {{
-                        console.warn(label);
-                    }}
-                }};
-
                 const opts = {options_json};
-                const center = map.getCenter();
-                const bounds = map.getBounds();
-                const style = typeof map.getStyle === 'function' ? map.getStyle() : null;
-                const styleLayerIds = style && Array.isArray(style.layers)
-                    ? style.layers.map(layer => layer.id)
-                    : [];
                 const requestedLayers = opts && Array.isArray(opts.layers) ? opts.layers : [];
-                const missingLayers = requestedLayers.filter(id => !styleLayerIds.includes(id));
-
-                _dbg('[dioxus-maplibre][query_rendered_features_at] start', {{
-                    mapId: '{map_id}',
-                    point: {{ x: {x}, y: {y} }},
-                    opts,
-                    center: {{ lat: center.lat, lng: center.lng }},
-                    zoom: map.getZoom(),
-                    styleLoaded: typeof map.isStyleLoaded === 'function' ? map.isStyleLoaded() : null,
-                    loaded: typeof map.loaded === 'function' ? map.loaded() : null,
-                    bounds: {{
-                        sw: {{ lat: bounds.getSouth(), lng: bounds.getWest() }},
-                        ne: {{ lat: bounds.getNorth(), lng: bounds.getEast() }}
-                    }},
-                    requestedLayers,
-                    missingLayers,
-                    styleLayerCount: styleLayerIds.length
-                }});
-
-                if (missingLayers.length > 0) {{
-                    _warn('[dioxus-maplibre][query_rendered_features_at] requested layers missing from style', {{
-                        mapId: '{map_id}',
-                        requestedLayers,
-                        missingLayers
-                    }});
-                }}
 
                 let features = map.queryRenderedFeatures([{x}, {y}], opts);
 
                 if (requestedLayers.length > 0 && features.length === 0) {{
                     const layerSet = new Set(requestedLayers);
-                    const fallback = map
+                    features = map
                         .queryRenderedFeatures([{x}, {y}])
                         .filter(f => f && f.layer && layerSet.has(f.layer.id));
-                    _dbg('[dioxus-maplibre][query_rendered_features_at] layers fallback', {{
-                        mapId: '{map_id}',
-                        point: {{ x: {x}, y: {y} }},
-                        requestedLayers,
-                        fallbackCount: fallback.length
-                    }});
-                    features = fallback;
                 }}
-
-                const sample = features.slice(0, 3).map(f => ({{
-                    id: f.id !== undefined ? f.id : null,
-                    source: f.source,
-                    sourceLayer: f.sourceLayer || null,
-                    properties: f.properties || {{}}
-                }}));
-
-                _dbg('[dioxus-maplibre][query_rendered_features_at] result', {{
-                    mapId: '{map_id}',
-                    count: features.length,
-                    sample
-                }});
 
                 return features.map(f => ({{
                     id: Number.isFinite(f.id) ? Math.trunc(f.id) : null,
@@ -2171,11 +1951,7 @@ pub fn query_rendered_features_at_js(map_id: &str, x: f64, y: f64, options_json:
                     sourceLayer: f.sourceLayer || null
                 }}));
             }} catch (err) {{
-                console.error('[dioxus-maplibre] Failed to query rendered features at point:', {{
-                    mapId: '{map_id}',
-                    point: {{ x: {x}, y: {y} }},
-                    error: err && err.message ? err.message : String(err)
-                }});
+                console.error('[dioxus-maplibre] Failed to query rendered features at point:', err);
                 return [];
             }}
         }})();
@@ -2191,53 +1967,8 @@ pub fn query_source_features_js(map_id: &str, source_id: &str, options_json: &st
         (function() {{
             {find}
             try {{
-                const _dbg = (label, payload) => {{
-                    try {{
-                        console.log(label + ' ' + JSON.stringify(payload));
-                    }} catch (_err) {{
-                        console.log(label);
-                    }}
-                }};
-                const _warn = (label, payload) => {{
-                    try {{
-                        console.warn(label + ' ' + JSON.stringify(payload));
-                    }} catch (_err) {{
-                        console.warn(label);
-                    }}
-                }};
-
                 const opts = {options_json};
-                const style = typeof map.getStyle === 'function' ? map.getStyle() : null;
-                const styleSourceIds = style && style.sources ? Object.keys(style.sources) : [];
-                const sourceExists = styleSourceIds.includes('{source_id}');
-                _dbg('[dioxus-maplibre][query_source_features] start', {{
-                    mapId: '{map_id}',
-                    sourceId: '{source_id}',
-                    sourceExists,
-                    styleSourceIds,
-                    opts
-                }});
-
-                if (!sourceExists) {{
-                    _warn('[dioxus-maplibre][query_source_features] source missing from style', {{
-                        mapId: '{map_id}',
-                        sourceId: '{source_id}'
-                    }});
-                }}
-
                 const features = map.querySourceFeatures('{source_id}', opts);
-
-                const sample = features.slice(0, 3).map(f => ({{
-                    id: f.id !== undefined ? f.id : null,
-                    sourceLayer: f.sourceLayer || null,
-                    properties: f.properties || {{}}
-                }}));
-                _dbg('[dioxus-maplibre][query_source_features] result', {{
-                    mapId: '{map_id}',
-                    sourceId: '{source_id}',
-                    count: features.length,
-                    sample
-                }});
 
                 return features.map(f => ({{
                     id: Number.isFinite(f.id) ? Math.trunc(f.id) : null,
@@ -2247,11 +1978,7 @@ pub fn query_source_features_js(map_id: &str, source_id: &str, options_json: &st
                     sourceLayer: f.sourceLayer || null
                 }}));
             }} catch (err) {{
-                console.error('[dioxus-maplibre] Failed to query source features:', {{
-                    mapId: '{map_id}',
-                    sourceId: '{source_id}',
-                    error: err && err.message ? err.message : String(err)
-                }});
+                console.error('[dioxus-maplibre] Failed to query source features:', err);
                 return [];
             }}
         }})();
