@@ -17,6 +17,7 @@ target
 **/mutants.out*/
 
 # Temp folder
+*.temp/
 temp/
 
 # E2E tests
