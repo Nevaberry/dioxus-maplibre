@@ -1,12 +1,10 @@
 //! Unit tests for option type serialization
 
 use dioxus_maplibre::{
-    ControlPosition, Padding,
-    GeoJsonSourceOptions, VectorSourceOptions, RasterSourceOptions,
-    RasterDemSourceOptions, LayerOptions, MarkerOptions, PopupOptions,
-    FlyToOptions, EaseToOptions, JumpToOptions, FitBoundsOptions,
-    TerrainOptions, SkyOptions, FogOptions, FeatureIdentifier, QueryOptions,
-    LatLng,
+    ControlPosition, EaseToOptions, FeatureIdentifier, FitBoundsOptions, FlyToOptions, FogOptions,
+    GeoJsonSourceOptions, JumpToOptions, LatLng, LayerOptions, MarkerOptions, Padding,
+    PopupOptions, QueryOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions,
+    TerrainOptions, VectorSourceOptions,
 };
 use serde_json::json;
 
@@ -132,8 +130,7 @@ fn layer_options_builder_line() {
 
 #[test]
 fn layer_options_background() {
-    let layer = LayerOptions::background("bg")
-        .paint(json!({"background-color": "#000"}));
+    let layer = LayerOptions::background("bg").paint(json!({"background-color": "#000"}));
 
     assert!(layer.source.is_none());
     assert_eq!(layer.layer_type, "background");
@@ -141,8 +138,7 @@ fn layer_options_background() {
 
 #[test]
 fn layer_options_with_source_layer() {
-    let layer = LayerOptions::fill("countries", "openmaptiles")
-        .source_layer("boundary");
+    let layer = LayerOptions::fill("countries", "openmaptiles").source_layer("boundary");
 
     assert_eq!(layer.source_layer.as_deref(), Some("boundary"));
 }

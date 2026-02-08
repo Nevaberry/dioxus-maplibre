@@ -1,7 +1,7 @@
 //! Event types for map interactions
 
-use serde::{Deserialize, Serialize};
 use crate::types::{Bounds, LatLng, Point};
+use serde::{Deserialize, Serialize};
 
 /// Event fired when the map is clicked
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -138,11 +138,27 @@ pub struct LayerHoverEvent {
     pub cursor_y: f64,
 }
 
+/// Event fired when map initialization succeeds
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MapReadyEvent;
+
+/// Event fired when bridge reports an initialization/runtime error
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MapErrorEvent {
+    /// Optional message sent from the JS bridge
+    #[serde(default)]
+    pub message: Option<String>,
+}
+
 /// Internal event enum for communication from JS
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[allow(dead_code)]
 pub enum MapEvent {
+    #[serde(rename = "ready")]
+    Ready,
+    #[serde(rename = "error")]
+    Error(MapErrorEvent),
     #[serde(rename = "click")]
     Click(MapClickEvent),
     #[serde(rename = "dblclick")]

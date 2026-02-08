@@ -11,7 +11,7 @@ A [MapLibre GL JS](https://maplibre.org/) wrapper for [Dioxus](https://dioxuslab
 cargo add dioxus-maplibre
 ```
 
-You also need to include the MapLibre GL JS library in your HTML:
+Include MapLibre assets in your HTML:
 
 ```html
 <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
@@ -20,62 +20,95 @@ You also need to include the MapLibre GL JS library in your HTML:
 
 ## Usage
 
-```rust
+### Imperative (`MapHandle`)
+
+```rust,ignore
 use dioxus::prelude::*;
-use dioxus_maplibre::{Map, Marker, Popup, LatLng};
+use dioxus_maplibre::{FlyToOptions, LatLng, Map, MapHandle};
 
 fn App() -> Element {
+    let mut map = use_signal(|| None::<MapHandle>);
+
     rsx! {
         Map {
             style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
             center: LatLng::new(60.17, 24.94),
             zoom: 10.0,
+            on_ready: move |handle| map.set(Some(handle)),
+        }
+        button {
+            onclick: move |_| {
+                if let Some(handle) = map() {
+                    handle.fly_to(FlyToOptions {
+                        center: Some(LatLng::new(60.17, 24.94)),
+                        zoom: Some(12.0),
+                        ..Default::default()
+                    });
+                }
+            },
+            "Fly"
+        }
+    }
+}
+```
 
-            Marker {
+### Declarative Components
+
+```rust,ignore
+use dioxus::prelude::*;
+use dioxus_maplibre::{
+    LatLng, LayerOptions, Map, MapLayer, MapMarker, MapSource, MapSourceKind,
+    GeoJsonSourceOptions,
+};
+use serde_json::json;
+
+fn App() -> Element {
+    rsx! {
+        Map {
+            MapSource {
+                id: "points",
+                source: MapSourceKind::GeoJson(GeoJsonSourceOptions {
+                    data: json!({"type": "FeatureCollection", "features": []}),
+                    ..Default::default()
+                }),
+                MapLayer {
+                    options: LayerOptions::circle("point-layer", "points")
+                        .paint(json!({"circle-radius": 5, "circle-color": "#3b82f6"})),
+                }
+            }
+
+            MapMarker {
+                id: "helsinki",
                 position: LatLng::new(60.17, 24.94),
-                Popup { content: "Hello!" }
             }
         }
     }
 }
 ```
 
-## Components
+## Public API
 
-- **Map** - The main map container
-- **Marker** - Add markers to the map
-- **Popup** - Attach popups to markers
-
-## Types
-
-- `LatLng` - Geographic coordinates (latitude/longitude)
-- `MapPosition` - Map center + zoom level
-- `Bounds` - Bounding box (southwest/northeast corners)
-- `Point` - Screen pixel coordinates
-
-## Events
-
-- `MapClickEvent` - Fired when the map is clicked
-- `MarkerClickEvent` - Fired when a marker is clicked
-- `MarkerHoverEvent` - Fired when hovering over a marker
-- `MapMoveEvent` - Fired when the map moves
-
-## Functions
-
-- `fly_to(map_id, latlng, zoom)` - Animate the map to a location
-- `pan_by(x, y)` - Pan the map by pixel offset
+- `Map` root component
+- `MapHandle` imperative API
+- `use_map_handle()` context hook
+- Declarative helpers: `MapSource`, `MapLayer`, `MapMarker`, `MapPopup`, `MapControl`
+- Options/types/events exported from crate root
 
 ## Development
 
 ```bash
-# Run tests
 cargo test
-
-# Run showcase app
-cd examples/showcase && dx serve --port 8080
+cargo check
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full development setup and testing instructions.
+Run showcase app:
+
+```bash
+cd examples/showcase
+dx serve --port 8080
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup and e2e workflow.
 
 ## License
 

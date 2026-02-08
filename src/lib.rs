@@ -27,36 +27,36 @@
 //! }
 //! ```
 
-mod types;
 mod events;
-mod options;
 mod handle;
 mod interop;
+mod options;
+mod types;
 
 /// Map components
 pub mod components;
 
 // Re-export public API — Types
-pub use types::{LatLng, MapPosition, Bounds, Point, QueryFeature};
+pub use types::{Bounds, LatLng, MapPosition, Point, QueryFeature};
 
 // Re-export public API — Events
 pub use events::{
-    MapClickEvent, MapDblClickEvent, MapContextMenuEvent,
-    MarkerClickEvent, MarkerHoverEvent, MarkerDragStartEvent, MarkerDragEndEvent,
-    MapMoveEvent, MapZoomEvent, MapRotateEvent, MapPitchEvent,
-    LayerClickEvent, LayerHoverEvent,
+    LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
+    MapErrorEvent, MapEvent, MapMoveEvent, MapPitchEvent, MapReadyEvent, MapRotateEvent,
+    MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
 };
 
 // Re-export public API — Options
 pub use options::{
-    ControlPosition, Padding,
-    GeoJsonSourceOptions, VectorSourceOptions, RasterSourceOptions,
-    RasterDemSourceOptions, ImageSourceOptions,
-    LayerOptions, MarkerOptions, PopupOptions,
-    FlyToOptions, EaseToOptions, JumpToOptions, FitBoundsOptions,
-    TerrainOptions, SkyOptions, FogOptions, FeatureIdentifier, QueryOptions,
+    ControlPosition, EaseToOptions, FeatureIdentifier, FitBoundsOptions, FlyToOptions, FogOptions,
+    GeoJsonSourceOptions, ImageSourceOptions, JumpToOptions, LayerOptions, MarkerOptions, Padding,
+    PopupOptions, QueryOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions,
+    TerrainOptions, VectorSourceOptions,
 };
 
 // Re-export public API — Handle & Component
+pub use components::{
+    Map, MapControl, MapControlKind, MapLayer, MapMarker, MapPopup, MapSource, MapSourceKind,
+    use_map_handle,
+};
 pub use handle::MapHandle;
-pub use components::Map;

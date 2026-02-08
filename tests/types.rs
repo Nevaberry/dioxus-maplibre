@@ -1,6 +1,6 @@
 //! Unit tests for geographic types
 
-use dioxus_maplibre::{LatLng, MapPosition, Bounds, Point, QueryFeature};
+use dioxus_maplibre::{Bounds, LatLng, MapPosition, Point, QueryFeature};
 
 #[test]
 fn latlng_new() {

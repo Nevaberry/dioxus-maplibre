@@ -1,10 +1,9 @@
 //! Unit tests for event serialization/deserialization
 
 use dioxus_maplibre::{
-    MapClickEvent, MapDblClickEvent, MapContextMenuEvent,
-    MarkerClickEvent, MarkerHoverEvent, MarkerDragStartEvent, MarkerDragEndEvent,
-    MapMoveEvent, MapZoomEvent, MapRotateEvent, MapPitchEvent,
-    LatLng, Point,
+    LatLng, MapClickEvent, MapContextMenuEvent, MapDblClickEvent, MapErrorEvent, MapEvent,
+    MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
+    MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent, Point,
 };
 
 #[test]
@@ -113,10 +112,28 @@ fn map_move_event_serialize() {
         center: LatLng::new(60.17, 24.94),
         zoom: 10.0,
         bounds: None,
+        phase: None,
     };
 
     let json = serde_json::to_string(&event).unwrap();
     assert!(json.contains("10"));
+}
+
+#[test]
+fn map_event_ready_deserialize() {
+    let event: MapEvent = serde_json::from_str(r#"{ "type": "ready" }"#).unwrap();
+    assert!(matches!(event, MapEvent::Ready));
+}
+
+#[test]
+fn map_event_error_deserialize() {
+    let event: MapEvent =
+        serde_json::from_str(r#"{ "type": "error", "message": "MapLibre GL JS not loaded" }"#)
+            .unwrap();
+    let MapEvent::Error(MapErrorEvent { message }) = event else {
+        panic!("expected error variant");
+    };
+    assert_eq!(message.as_deref(), Some("MapLibre GL JS not loaded"));
 }
 
 #[test]

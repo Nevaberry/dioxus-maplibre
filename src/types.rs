@@ -29,7 +29,10 @@ impl LatLng {
 
     /// Create from [lng, lat] array format used by MapLibre
     pub fn from_array(arr: [f64; 2]) -> Self {
-        Self { lng: arr[0], lat: arr[1] }
+        Self {
+            lng: arr[0],
+            lat: arr[1],
+        }
     }
 }
 
