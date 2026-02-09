@@ -16,6 +16,9 @@ const CIRCLE_LAYER: &str = "stress-circle-layer";
 const SQUARE_LAYER: &str = "stress-square-layer";
 const TRIANGLE_LAYER: &str = "stress-triangle-layer";
 const DIAMOND_LAYER: &str = "stress-diamond-layer";
+const SQUARE_FAST_LAYER: &str = "stress-square-fast-layer";
+const TRIANGLE_FAST_LAYER: &str = "stress-triangle-fast-layer";
+const DIAMOND_FAST_LAYER: &str = "stress-diamond-fast-layer";
 
 const SQUARE_ICON: &str = "stress-icon-square";
 const TRIANGLE_ICON: &str = "stress-icon-triangle";
@@ -197,107 +200,146 @@ fn install_shape_icons_js() -> String {
 fn diagnostics_snapshot_js() -> String {
     format!(
         r##"
-        const safeValue = (value) => {{
-            try {{
-                return JSON.parse(JSON.stringify(value));
-            }} catch (err) {{
-                return {{
-                    unserializable: true,
-                    error: (err && err.message) ? err.message : String(err)
-                }};
-            }}
-        }};
-
-        const inspectSource = (id) => {{
-            const src = map.getSource(id);
-            if (!src) return {{ id, exists: false }};
-            const info = {{ id, exists: true, type: src.type || null }};
-            try {{
-                if (src && src._data && Array.isArray(src._data.features)) {{
-                    info.featureCount = src._data.features.length;
-                }}
-            }} catch (e) {{
-                info.featureCountError = (e && e.message) ? e.message : String(e);
-            }}
-            return info;
-        }};
-
-        const inspectLayer = (id) => {{
-            const layer = map.getLayer(id);
-            if (!layer) return {{ id, exists: false }};
-            return {{
-                id,
-                exists: true,
-                type: layer.type,
-                source: layer.source || null,
-                iconImage: safeValue(map.getLayoutProperty(id, "icon-image")),
-                textField: safeValue(map.getLayoutProperty(id, "text-field")),
-                textSize: safeValue(map.getLayoutProperty(id, "text-size")),
-                iconSize: safeValue(map.getLayoutProperty(id, "icon-size")),
-                visibility: safeValue(map.getLayoutProperty(id, "visibility")),
-                circleRadius: safeValue(map.getPaintProperty(id, "circle-radius"))
-            }};
-        }};
-
-        const out = {{
-            styleLoaded: (typeof map.isStyleLoaded === "function") ? map.isStyleLoaded() : null,
-            zoom: (typeof map.getZoom === "function") ? map.getZoom() : null,
-            center: (typeof map.getCenter === "function")
-                ? (() => {{
-                    const c = map.getCenter();
-                    return {{ lng: c.lng, lat: c.lat }};
-                }})()
-                : null,
-            listImages: safeValue((typeof map.listImages === "function") ? map.listImages() : null),
-            hasImage: {{
-                square: (typeof map.hasImage === "function") ? map.hasImage("{square_icon}") : null,
-                triangle: (typeof map.hasImage === "function") ? map.hasImage("{triangle_icon}") : null,
-                diamond: (typeof map.hasImage === "function") ? map.hasImage("{diamond_icon}") : null
-            }},
-            sources: {{
-                circle: inspectSource("{circle_source}"),
-                square: inspectSource("{square_source}"),
-                triangle: inspectSource("{triangle_source}"),
-                diamond: inspectSource("{diamond_source}")
-            }},
-            layers: {{
-                circle: inspectLayer("{circle_layer}"),
-                square: inspectLayer("{square_layer}"),
-                triangle: inspectLayer("{triangle_layer}"),
-                diamond: inspectLayer("{diamond_layer}")
-            }}
-        }};
-
         try {{
-            if (typeof map.addImage === "function") {{
-                const name = "__stress_diag_temp";
-                if (map.hasImage(name)) map.removeImage(name);
-                const tiny = {{
-                    width: 2,
-                    height: 2,
-                    data: new Uint8Array([
-                        255, 0, 0, 255,
-                        255, 0, 0, 255,
-                        255, 0, 0, 255,
-                        255, 0, 0, 255
-                    ])
+            const safeError = (err) => (err && err.message) ? err.message : String(err);
+
+            const safeValue = (value) => {{
+                try {{
+                    return JSON.parse(JSON.stringify(value));
+                }} catch (err) {{
+                    return {{
+                        unserializable: true,
+                        error: safeError(err)
+                    }};
+                }}
+            }};
+
+            const safeLayoutProperty = (id, prop) => {{
+                try {{
+                    return safeValue(map.getLayoutProperty(id, prop));
+                }} catch (err) {{
+                    return {{ error: safeError(err) }};
+                }}
+            }};
+
+            const safePaintProperty = (id, prop) => {{
+                try {{
+                    return safeValue(map.getPaintProperty(id, prop));
+                }} catch (err) {{
+                    return {{ error: safeError(err) }};
+                }}
+            }};
+
+            const inspectSource = (id) => {{
+                let src = null;
+                try {{
+                    src = map.getSource(id);
+                }} catch (err) {{
+                    return {{ id, exists: false, error: safeError(err) }};
+                }}
+                if (!src) return {{ id, exists: false }};
+                const info = {{ id, exists: true, type: src.type || null }};
+                try {{
+                    if (src && src._data && Array.isArray(src._data.features)) {{
+                        info.featureCount = src._data.features.length;
+                    }}
+                }} catch (e) {{
+                    info.featureCountError = safeError(e);
+                }}
+                return info;
+            }};
+
+            const inspectLayer = (id) => {{
+                let layer = null;
+                try {{
+                    layer = map.getLayer(id);
+                }} catch (err) {{
+                    return {{ id, exists: false, error: safeError(err) }};
+                }}
+                if (!layer) return {{ id, exists: false }};
+                return {{
+                    id,
+                    exists: true,
+                    type: layer.type,
+                    source: layer.source || null,
+                    iconImage: safeLayoutProperty(id, "icon-image"),
+                    textField: safeLayoutProperty(id, "text-field"),
+                    textSize: safeLayoutProperty(id, "text-size"),
+                    iconSize: safeLayoutProperty(id, "icon-size"),
+                    visibility: safeLayoutProperty(id, "visibility"),
+                    circleRadius: safePaintProperty(id, "circle-radius")
                 }};
-                map.addImage(name, tiny);
+            }};
+
+            const out = {{
+                ok: true,
+                styleLoaded: (typeof map.isStyleLoaded === "function") ? map.isStyleLoaded() : null,
+                zoom: (typeof map.getZoom === "function") ? map.getZoom() : null,
+                center: (typeof map.getCenter === "function")
+                    ? (() => {{
+                        const c = map.getCenter();
+                        return {{ lng: c.lng, lat: c.lat }};
+                    }})()
+                    : null,
+                listImages: safeValue((typeof map.listImages === "function") ? map.listImages() : null),
+                hasImage: {{
+                    square: (typeof map.hasImage === "function") ? map.hasImage("{square_icon}") : null,
+                    triangle: (typeof map.hasImage === "function") ? map.hasImage("{triangle_icon}") : null,
+                    diamond: (typeof map.hasImage === "function") ? map.hasImage("{diamond_icon}") : null
+                }},
+                sources: {{
+                    circle: inspectSource("{circle_source}"),
+                    square: inspectSource("{square_source}"),
+                    triangle: inspectSource("{triangle_source}"),
+                    diamond: inspectSource("{diamond_source}")
+                }},
+                layers: {{
+                    circle: inspectLayer("{circle_layer}"),
+                    square: inspectLayer("{square_layer}"),
+                    triangle: inspectLayer("{triangle_layer}"),
+                    diamond: inspectLayer("{diamond_layer}"),
+                    squareFast: inspectLayer("{square_fast_layer}"),
+                    triangleFast: inspectLayer("{triangle_fast_layer}"),
+                    diamondFast: inspectLayer("{diamond_fast_layer}")
+                }}
+            }};
+
+            try {{
+                if (typeof map.addImage === "function") {{
+                    const name = "__stress_diag_temp";
+                    if (map.hasImage(name)) map.removeImage(name);
+                    const tiny = {{
+                        width: 2,
+                        height: 2,
+                        data: new Uint8Array([
+                            255, 0, 0, 255,
+                            255, 0, 0, 255,
+                            255, 0, 0, 255,
+                            255, 0, 0, 255
+                        ])
+                    }};
+                    map.addImage(name, tiny);
+                    out.tempImageAdd = {{
+                        ok: true,
+                        hasAfterAdd: map.hasImage(name)
+                    }};
+                    map.removeImage(name);
+                    out.tempImageAdd.hasAfterRemove = map.hasImage(name);
+                }}
+            }} catch (err) {{
                 out.tempImageAdd = {{
-                    ok: true,
-                    hasAfterAdd: map.hasImage(name)
+                    ok: false,
+                    error: safeError(err)
                 }};
-                map.removeImage(name);
-                out.tempImageAdd.hasAfterRemove = map.hasImage(name);
             }}
-        }} catch (err) {{
-            out.tempImageAdd = {{
+
+            return safeValue(out);
+        }} catch (fatal) {{
+            return {{
                 ok: false,
-                error: (err && err.message) ? err.message : String(err)
+                fatalError: (fatal && fatal.message) ? fatal.message : String(fatal)
             }};
         }}
-
-        return safeValue(out);
         "##,
         square_icon = SQUARE_ICON,
         triangle_icon = TRIANGLE_ICON,
@@ -309,7 +351,10 @@ fn diagnostics_snapshot_js() -> String {
         circle_layer = CIRCLE_LAYER,
         square_layer = SQUARE_LAYER,
         triangle_layer = TRIANGLE_LAYER,
-        diamond_layer = DIAMOND_LAYER
+        diamond_layer = DIAMOND_LAYER,
+        square_fast_layer = SQUARE_FAST_LAYER,
+        triangle_fast_layer = TRIANGLE_FAST_LAYER,
+        diamond_fast_layer = DIAMOND_FAST_LAYER
     )
 }
 
@@ -358,6 +403,10 @@ fn shape_icon_size_expression() -> serde_json::Value {
         10, 0.7,
         12, 0.95
     ])
+}
+
+fn fast_shape_circle_radius_expression() -> serde_json::Value {
+    json!(["interpolate", ["linear"], ["zoom"], 2, 0.6, 6, 1.1, 10, 2.0, 12, 2.6])
 }
 
 fn build_generation_script(
@@ -467,6 +516,57 @@ fn force_shape_icon_layouts(handle: &MapHandle) {
     handle.set_layout_property(DIAMOND_LAYER, "text-size", json!(0));
 }
 
+fn add_shape_fast_layers(handle: &MapHandle) {
+    let radius = fast_shape_circle_radius_expression();
+    let hidden = json!("none");
+
+    handle.add_layer(
+        LayerOptions::circle(SQUARE_FAST_LAYER, SQUARE_SOURCE)
+            .paint(json!({
+                "circle-color": "#22d3ee",
+                "circle-opacity": 0.88,
+                "circle-radius": radius.clone()
+            }))
+            .layout(json!({ "visibility": hidden })),
+    );
+
+    handle.add_layer(
+        LayerOptions::circle(TRIANGLE_FAST_LAYER, TRIANGLE_SOURCE)
+            .paint(json!({
+                "circle-color": "#f97316",
+                "circle-opacity": 0.88,
+                "circle-radius": radius.clone()
+            }))
+            .layout(json!({ "visibility": hidden })),
+    );
+
+    handle.add_layer(
+        LayerOptions::circle(DIAMOND_FAST_LAYER, DIAMOND_SOURCE)
+            .paint(json!({
+                "circle-color": "#facc15",
+                "circle-opacity": 0.88,
+                "circle-radius": radius
+            }))
+            .layout(json!({ "visibility": hidden })),
+    );
+}
+
+fn apply_shape_render_mode(handle: &MapHandle, fast_render_mode: bool) {
+    let (symbol_vis, fast_vis) = if fast_render_mode {
+        (json!("none"), json!("visible"))
+    } else {
+        (json!("visible"), json!("none"))
+    };
+
+    handle.set_layout_property(SQUARE_LAYER, "visibility", symbol_vis.clone());
+    handle.set_layout_property(TRIANGLE_LAYER, "visibility", symbol_vis.clone());
+    handle.set_layout_property(DIAMOND_LAYER, "visibility", symbol_vis);
+
+    handle.set_layout_property(SQUARE_FAST_LAYER, "visibility", fast_vis.clone());
+    handle.set_layout_property(TRIANGLE_FAST_LAYER, "visibility", fast_vis.clone());
+    handle.set_layout_property(DIAMOND_FAST_LAYER, "visibility", fast_vis);
+}
+
 fn add_shape_text_layers_fallback(handle: &MapHandle) {
     handle.add_layer(
         LayerOptions::symbol(SQUARE_LAYER, SQUARE_SOURCE)
@@ -538,6 +638,7 @@ pub fn Stress() -> Element {
     let mut icon_install_debug = use_signal(|| "No icon install attempt yet.".to_string());
     let mut diagnostics_json = use_signal(|| "No diagnostics collected yet.".to_string());
     let mut debug_log = use_signal(Vec::<String>::new);
+    let mut fast_render_mode = use_signal(|| false);
 
     let style: Signal<String> = use_context();
 
@@ -554,6 +655,7 @@ pub fn Stress() -> Element {
         + u64::from(selected_square_count)
         + u64::from(selected_triangle_count)
         + u64::from(selected_diamond_count);
+    let fast_mode_label = if fast_render_mode() { "ON" } else { "OFF" };
 
     rsx! {
         div { style: "display: flex; height: 100%;",
@@ -604,6 +706,8 @@ pub fn Stress() -> Element {
                             if icons_ready {
                                 add_shape_icon_layers(&map);
                                 force_shape_icon_layouts(&map);
+                                add_shape_fast_layers(&map);
+                                apply_shape_render_mode(&map, fast_render_mode());
                                 shape_render_mode.set("Icons".to_string());
                                 debug_log.write().push(
                                     "icon install: OK, added icon-based symbol layers + forced icon layouts"
@@ -611,6 +715,8 @@ pub fn Stress() -> Element {
                                 );
                             } else {
                                 add_shape_text_layers_fallback(&map);
+                                add_shape_fast_layers(&map);
+                                apply_shape_render_mode(&map, fast_render_mode());
                                 if let Some(error) = icon_error {
                                     debug_log.write().push(format!(
                                         "icon install: FAILED, using text fallback ({error})"
@@ -860,6 +966,50 @@ pub fn Stress() -> Element {
                     }
                 }
 
+                div { style: "margin-top: 12px; padding: 10px; border: 1px solid #334155; border-radius: 6px; background: #111827;",
+                    p { style: "margin: 0 0 6px 0; color: #9ec9ff;", "Render mode for square/triangle/diamond" }
+                    button {
+                        style: "padding: 8px; border-radius: 4px; border: none; cursor: pointer; background: #0f766e; color: white;",
+                        onclick: move |_| {
+                            let new_mode = !fast_render_mode();
+                            fast_render_mode.set(new_mode);
+                            debug_log.write().push(format!(
+                                "fast render mode {}",
+                                if new_mode { "enabled" } else { "disabled" }
+                            ));
+
+                            if let Some(ref map) = *map_handle.read() {
+                                apply_shape_render_mode(map, new_mode);
+                                let map = map.clone();
+                                spawn(async move {
+                                    if let Some(snapshot) =
+                                        map.eval_async::<serde_json::Value>(&diagnostics_snapshot_js()).await
+                                    {
+                                        diagnostics_json.set(
+                                            serde_json::to_string_pretty(&snapshot)
+                                                .unwrap_or_else(|_| snapshot.to_string()),
+                                        );
+                                        debug_log.write().push(
+                                            "post-mode-switch diagnostics snapshot collected"
+                                                .to_string(),
+                                        );
+                                    }
+                                });
+                            }
+                        },
+                        if fast_render_mode() {
+                            "Fast mode: ON (color circles)"
+                        } else {
+                            "Fast mode: OFF (shape icons)"
+                        }
+                    }
+                    if planned_total_points >= 150_000 {
+                        p { style: "margin-top: 8px; color: #facc15;",
+                            "Recommendation: enable fast mode for smoother pan/zoom above ~150k points."
+                        }
+                    }
+                }
+
                 p { style: "margin-top: 12px; color: #b8c1d9;", "Planned total points: {planned_total_points}" }
 
                 if let Some(ref map) = *map_handle.read() {
@@ -1047,6 +1197,7 @@ pub fn Stress() -> Element {
 
                 p { style: "margin-top: 12px; color: #9ec9ff;", "{generation_status}" }
                 p { style: "margin-top: 6px; color: #93c5fd;", "Shape renderer: {shape_render_mode}" }
+                p { style: "margin-top: 6px; color: #93c5fd;", "Fast render mode: {fast_mode_label}" }
                 p { style: "margin-top: 6px; color: #a5b4fc;", "Last rendered points: {last_total_points}" }
 
                 if let Some(ms) = last_elapsed_ms() {
