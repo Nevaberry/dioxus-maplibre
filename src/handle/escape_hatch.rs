@@ -17,11 +17,25 @@ impl MapHandle {
 
     /// Execute arbitrary JavaScript and return a deserialized result.
     ///
-    /// The JS code should return a value. It receives `map` as a variable.
+    /// The JS code should be a function body that `return`s a value.
+    /// It receives `map` as a variable.
+    ///
+    /// Prefer:
+    /// `handle.eval_async::<bool>("return map.hasImage('my-icon');").await`
+    ///
+    /// Avoid wrapping in your own immediately-invoked function expression (IIFE),
+    /// because this method already wraps and executes the provided code.
     #[cfg(target_arch = "wasm32")]
     pub async fn eval_async<T: serde::de::DeserializeOwned>(&self, js_code: &str) -> Option<T> {
         let find = crate::interop::find_map_js(&self.map_id);
-        let full_js = format!("(function() {{ {find} {js_code} }})();");
+        let full_js = format!(
+            r#"
+            {find}
+            return (async function() {{
+                {js_code}
+            }})();
+            "#
+        );
         document::eval(&full_js).join::<T>().await.ok()
     }
 

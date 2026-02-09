@@ -18,11 +18,9 @@ pub fn get_padding_js(map_id: &str) -> String {
     let find = find_map_js(map_id);
     format!(
         r#"
-        (function() {{
-            {find}
-            const p = map.getPadding();
-            return {{ top: p.top, bottom: p.bottom, left: p.left, right: p.right }};
-        }})();
+        {find}
+        const p = map.getPadding();
+        return {{ top: p.top, bottom: p.bottom, left: p.left, right: p.right }};
         "#
     )
 }

@@ -49,6 +49,8 @@ enum Route {
     Animation {},
     #[route("/fog")]
     Fog {},
+    #[route("/stress")]
+    Stress {},
 }
 
 #[component]
@@ -89,6 +91,7 @@ fn AppLayout() -> Element {
                 NavLink { to: Route::Query {}, label: "Query" }
                 NavLink { to: Route::Animation {}, label: "Animation" }
                 NavLink { to: Route::Fog {}, label: "Fog" }
+                NavLink { to: Route::Stress {}, label: "Stress (1M+)" }
 
                 div { style: "margin-top: auto; padding-top: 12px; border-top: 1px solid #333;",
                     p { style: "color: #888; font-size: 11px; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 1px;", "Theme" }

@@ -16,6 +16,7 @@ mod patterns;
 mod query;
 mod animation;
 mod fog;
+mod stress;
 
 pub use basic::Basic;
 pub use markers::Markers;
@@ -35,3 +36,4 @@ pub use patterns::Patterns;
 pub use query::Query;
 pub use animation::Animation;
 pub use fog::Fog;
+pub use stress::Stress;

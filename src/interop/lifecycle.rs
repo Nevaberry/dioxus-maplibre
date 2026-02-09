@@ -315,7 +315,7 @@ pub fn init_map_js(
                     const message = e && e.error && e.error.message
                         ? String(e.error.message)
                         : (e && e.error ? String(e.error) : 'Map error');
-                    console.error('[dioxus-maplibre] Map error:', e && e.error ? e.error : e);
+                    console.error('[dioxus-maplibre] Map error: ' + message + ' map_id = ' + {map_id_lit});
                     dioxus.send(JSON.stringify({{ type: 'error', message }}));
                 }});
             }} catch (err) {{

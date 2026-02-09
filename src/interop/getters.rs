@@ -5,10 +5,8 @@ pub fn get_zoom_js(map_id: &str) -> String {
     let find = find_map_js(map_id);
     format!(
         r#"
-        (function() {{
-            {find}
-            return map.getZoom();
-        }})();
+        {find}
+        return map.getZoom();
         "#
     )
 }
@@ -18,11 +16,9 @@ pub fn get_center_js(map_id: &str) -> String {
     let find = find_map_js(map_id);
     format!(
         r#"
-        (function() {{
-            {find}
-            const c = map.getCenter();
-            return {{ lat: c.lat, lng: c.lng }};
-        }})();
+        {find}
+        const c = map.getCenter();
+        return {{ lat: c.lat, lng: c.lng }};
         "#
     )
 }
@@ -32,10 +28,8 @@ pub fn get_bearing_js(map_id: &str) -> String {
     let find = find_map_js(map_id);
     format!(
         r#"
-        (function() {{
-            {find}
-            return map.getBearing();
-        }})();
+        {find}
+        return map.getBearing();
         "#
     )
 }
@@ -45,10 +39,8 @@ pub fn get_pitch_js(map_id: &str) -> String {
     let find = find_map_js(map_id);
     format!(
         r#"
-        (function() {{
-            {find}
-            return map.getPitch();
-        }})();
+        {find}
+        return map.getPitch();
         "#
     )
 }
@@ -58,14 +50,12 @@ pub fn get_bounds_js(map_id: &str) -> String {
     let find = find_map_js(map_id);
     format!(
         r#"
-        (function() {{
-            {find}
-            const b = map.getBounds();
-            return {{
-                sw: {{ lat: b.getSouth(), lng: b.getWest() }},
-                ne: {{ lat: b.getNorth(), lng: b.getEast() }}
-            }};
-        }})();
+        {find}
+        const b = map.getBounds();
+        return {{
+            sw: {{ lat: b.getSouth(), lng: b.getWest() }},
+            ne: {{ lat: b.getNorth(), lng: b.getEast() }}
+        }};
         "#
     )
 }
