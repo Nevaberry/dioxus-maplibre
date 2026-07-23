@@ -157,14 +157,15 @@ The repository has three long-lived branches:
   request.
 - `production` is the source for production deployments and crate releases.
   Promote an approved staging state with a `main` -> `production` pull request.
-  A push to
-  `production` runs release-plz, which prepares a release pull request with the
-  next version and changelog. Merging that generated pull request creates the
-  `v<version>` tag and GitHub release and publishes the crate to crates.io.
+  Before promotion, set the intended version in `Cargo.toml` and update
+  `Cargo.lock`. A push to `production` runs release-plz; when that version is
+  not already published, it creates the `v<version>` tag and GitHub release and
+  publishes the crate to crates.io.
 
 Do not develop directly on `main` or `production`. Timestamped
 `release-plz-*` branches are temporary automation branches, not development
-branches.
+branches. The production workflow does not create them; older timestamped
+branches predate the current branch workflow.
 
 ### Pull Request Checklist
 
