@@ -2,7 +2,7 @@
 name = "dioxus-maplibre"
 version = "0.0.7"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.97.1"
 description = "MapLibre GL JS wrapper for Dioxus 0.7"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Nevaberry/dioxus-maplibre"
@@ -17,6 +17,7 @@ exclude = [
     ".agents/",
     ".claude/",
     "CLAUDE.md",
+    "AGENTS.md",
 ]
 
 [lints.rust]
@@ -38,15 +39,15 @@ pub_with_shorthand = "allow"
 redundant_pub_crate = "allow"
 
 [dependencies]
-dioxus = "0.7"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-uuid = { version = "1", features = ["v4", "js"] }
-tracing = "0.1"
+dioxus = "0.7.9"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+uuid = { version = "1.24.0", features = ["v4", "js"] }
+tracing = "0.1.44"
 
 [features]
 default = []
 web = ["dioxus/web"]
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
+wasm-bindgen-test = "0.3.76"

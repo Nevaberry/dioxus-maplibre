@@ -1,5 +1,7 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{Map, MapHandle, MarkerOptions, MarkerClickEvent, MarkerDragEndEvent, LatLng};
+use dioxus_maplibre::{
+    LatLng, Map, MapHandle, MarkerClickEvent, MarkerDragEndEvent, MarkerOptions,
+};
 
 #[component]
 pub fn Markers() -> Element {

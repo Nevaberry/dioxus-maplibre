@@ -9,11 +9,12 @@ use super::event_dispatch::MapEventHandlers;
 use crate::events::MapEvent;
 use crate::events::{
     LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapErrorEvent, MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
-    MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
+    MapErrorEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent, MapRollEvent, MapRotateEvent,
+    MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
 };
 use crate::handle::MapHandle;
 use crate::interop::generate_map_id;
+use crate::options::MapOptions;
 use crate::types::{Bounds, LatLng};
 
 /// Props for the `Map` component.
@@ -54,6 +55,14 @@ pub struct MapProps {
     /// Enable cooperative gestures (require Ctrl/Cmd to zoom with scroll).
     #[props(optional)]
     pub cooperative_gestures: Option<bool>,
+
+    /// Additional MapLibre constructor options.
+    ///
+    /// These values override matching dedicated props and expose the complete
+    /// upstream `MapOptions` surface. The `container` option is always managed
+    /// by this component.
+    #[props(default)]
+    pub options: MapOptions,
 
     /// Container height (CSS value).
     #[props(default = "100%".to_string())]
@@ -119,6 +128,14 @@ pub struct MapProps {
     #[props(optional)]
     pub on_pitch: Option<EventHandler<MapPitchEvent>>,
 
+    /// Called when camera roll changes.
+    #[props(optional)]
+    pub on_roll: Option<EventHandler<MapRollEvent>>,
+
+    /// Called for lower-frequency lifecycle and transition events.
+    #[props(optional)]
+    pub on_lifecycle: Option<EventHandler<MapLifecycleEvent>>,
+
     /// Called when a feature in a layer is clicked.
     #[props(optional)]
     pub on_layer_click: Option<EventHandler<LayerClickEvent>>,
@@ -162,6 +179,8 @@ pub fn Map(props: MapProps) -> Element {
             on_zoom: props.on_zoom,
             on_rotate: props.on_rotate,
             on_pitch: props.on_pitch,
+            on_roll: props.on_roll,
+            on_lifecycle: props.on_lifecycle,
             on_layer_click: props.on_layer_click,
             on_layer_hover: props.on_layer_hover,
         };
@@ -175,6 +194,7 @@ pub fn Map(props: MapProps) -> Element {
         let max_zoom = props.max_zoom;
         let max_bounds = props.max_bounds;
         let cooperative_gestures = props.cooperative_gestures;
+        let options_json = serde_json::to_string(&props.options.0).unwrap_or_else(|_| "{}".into());
         let move_event_throttle_ms = props.move_event_throttle_ms;
 
         {
@@ -191,6 +211,7 @@ pub fn Map(props: MapProps) -> Element {
                 let container_id = container_id.clone();
                 let map_id = map_id.clone();
                 let style = style.clone();
+                let options_json = options_json.clone();
                 let handlers = handlers.clone();
                 let map_handle_signal = map_handle_signal;
 
@@ -215,6 +236,7 @@ pub fn Map(props: MapProps) -> Element {
                         max_zoom,
                         max_bounds_str.as_deref(),
                         cooperative_gestures,
+                        &options_json,
                         move_event_throttle_ms,
                     );
 

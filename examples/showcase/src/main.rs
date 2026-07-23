@@ -15,22 +15,36 @@ enum Route {
     #[layout(AppLayout)]
     #[route("/")]
     Basic {},
+    #[route("/coverage")]
+    Coverage {},
+    #[route("/declarative")]
+    Declarative {},
     #[route("/markers")]
     Markers {},
     #[route("/sources")]
     Sources {},
+    #[route("/media-sources")]
+    MediaSources {},
     #[route("/layers")]
     Layers {},
+    #[route("/raster-relief")]
+    RasterRelief {},
     #[route("/controls")]
     Controls {},
     #[route("/navigation")]
     Navigation {},
+    #[route("/camera-state")]
+    CameraState {},
     #[route("/interaction")]
     Interaction {},
+    #[route("/lifecycle")]
+    LifecycleEvents {},
     #[route("/terrain")]
     Terrain {},
     #[route("/style")]
     StyleSwitcher {},
+    #[route("/expressions")]
+    Expressions {},
     #[route("/eval")]
     EvalDemo {},
     #[route("/heatmap")]
@@ -49,6 +63,8 @@ enum Route {
     Animation {},
     #[route("/fog")]
     Fog {},
+    #[route("/projections")]
+    Projections {},
     #[route("/stress")]
     Stress {},
 }
@@ -71,26 +87,41 @@ fn AppLayout() -> Element {
         div {
             style: "display: flex; height: calc(100vh - 16px);",
             nav {
-                style: "width: 200px; background: #1a1a2e; padding: 16px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex-shrink: 0;",
+                style: "width: 220px; background: #1a1a2e; padding: 16px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex-shrink: 0;",
                 h3 { style: "color: #e0e0e0; margin: 0 0 12px 0; font-size: 14px;", "dioxus-maplibre" }
+                NavSection { label: "Overview" }
                 NavLink { to: Route::Basic {}, label: "Basic Map" }
+                NavLink { to: Route::Coverage {}, label: "Feature Coverage" }
+                NavLink { to: Route::Declarative {}, label: "Declarative API" }
+
+                NavSection { label: "Data & rendering" }
                 NavLink { to: Route::Markers {}, label: "Markers" }
-                NavLink { to: Route::Sources {}, label: "Sources" }
-                NavLink { to: Route::Layers {}, label: "Layers" }
-                NavLink { to: Route::Controls {}, label: "Controls" }
-                NavLink { to: Route::Navigation {}, label: "Navigation" }
-                NavLink { to: Route::Interaction {}, label: "Interaction" }
-                NavLink { to: Route::Terrain {}, label: "Terrain" }
-                NavLink { to: Route::StyleSwitcher {}, label: "Style" }
-                NavLink { to: Route::EvalDemo {}, label: "Eval" }
+                NavLink { to: Route::Popups {}, label: "Popups" }
+                NavLink { to: Route::Sources {}, label: "GeoJSON & Clusters" }
+                NavLink { to: Route::MediaSources {}, label: "Media Sources" }
+                NavLink { to: Route::Layers {}, label: "Vector Layers" }
+                NavLink { to: Route::RasterRelief {}, label: "Raster & Relief" }
                 NavLink { to: Route::Heatmap {}, label: "Heatmap" }
                 NavLink { to: Route::Symbols {}, label: "Symbols" }
-                NavLink { to: Route::Popups {}, label: "Popups" }
-                NavLink { to: Route::Buildings {}, label: "Buildings" }
-                NavLink { to: Route::Patterns {}, label: "Patterns" }
+                NavLink { to: Route::Buildings {}, label: "3D Buildings" }
+                NavLink { to: Route::Patterns {}, label: "Images & Patterns" }
+
+                NavSection { label: "Map behavior" }
+                NavLink { to: Route::Controls {}, label: "Controls" }
+                NavLink { to: Route::Navigation {}, label: "Navigation" }
+                NavLink { to: Route::CameraState {}, label: "Camera & State" }
+                NavLink { to: Route::Interaction {}, label: "Interaction" }
+                NavLink { to: Route::LifecycleEvents {}, label: "Events & Lifecycle" }
+                NavLink { to: Route::Terrain {}, label: "Terrain" }
+                NavLink { to: Route::Fog {}, label: "Sky & Fog" }
+                NavLink { to: Route::Projections {}, label: "Projection & Globe" }
+
+                NavSection { label: "Style & runtime" }
+                NavLink { to: Route::StyleSwitcher {}, label: "Style" }
+                NavLink { to: Route::Expressions {}, label: "Expressions" }
+                NavLink { to: Route::EvalDemo {}, label: "Eval / Integrations" }
                 NavLink { to: Route::Query {}, label: "Query" }
                 NavLink { to: Route::Animation {}, label: "Animation" }
-                NavLink { to: Route::Fog {}, label: "Fog" }
                 NavLink { to: Route::Stress {}, label: "Stress (1M+)" }
 
                 div { style: "margin-top: auto; padding-top: 12px; border-top: 1px solid #333;",
@@ -113,6 +144,16 @@ fn AppLayout() -> Element {
                 style: "flex: 1; position: relative;",
                 Outlet::<Route> {}
             }
+        }
+    }
+}
+
+#[component]
+fn NavSection(label: &'static str) -> Element {
+    rsx! {
+        div {
+            style: "color: #64748b; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 12px 8px 3px;",
+            "{label}"
         }
     }
 }

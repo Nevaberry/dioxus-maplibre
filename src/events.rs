@@ -1,5 +1,6 @@
 //! Event types for map interactions
 
+use crate::options::FeatureId;
 use crate::types::{Bounds, LatLng, Point};
 use serde::{Deserialize, Serialize};
 
@@ -108,13 +109,31 @@ pub struct MapPitchEvent {
     pub pitch: f64,
 }
 
+/// Event fired when camera roll changes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MapRollEvent {
+    pub roll: f64,
+}
+
+/// A lower-frequency MapLibre lifecycle event.
+///
+/// This covers upstream events that do not warrant a dedicated Dioxus prop,
+/// including `style.load`, `idle`, `terrain`, `projectiontransition`, box zoom,
+/// drag boundaries, and WebGL context changes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MapLifecycleEvent {
+    pub event: String,
+    #[serde(default)]
+    pub detail: serde_json::Value,
+}
+
 /// Event fired when a feature in a layer is clicked
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayerClickEvent {
     /// Layer ID where the click occurred
     pub layer_id: String,
-    /// GeoJSON feature ID (numeric, if present)
-    pub feature_id: Option<i64>,
+    /// GeoJSON feature ID (numeric or string, if present)
+    pub feature_id: Option<FeatureId>,
     /// Feature properties from GeoJSON
     pub properties: serde_json::Value,
     /// Geographic coordinates of the click
@@ -126,8 +145,8 @@ pub struct LayerClickEvent {
 pub struct LayerHoverEvent {
     /// Layer ID where the hover occurred
     pub layer_id: String,
-    /// GeoJSON feature ID (numeric, if present). None when mouse leaves.
-    pub feature_id: Option<i64>,
+    /// GeoJSON feature ID (numeric or string, if present). None when mouse leaves.
+    pub feature_id: Option<FeatureId>,
     /// Feature properties from GeoJSON. None when mouse leaves.
     pub properties: Option<serde_json::Value>,
     /// Geographic coordinates
@@ -181,6 +200,10 @@ pub enum MapEvent {
     Rotate(MapRotateEvent),
     #[serde(rename = "pitch")]
     Pitch(MapPitchEvent),
+    #[serde(rename = "roll")]
+    Roll(MapRollEvent),
+    #[serde(rename = "lifecycle")]
+    Lifecycle(MapLifecycleEvent),
     #[serde(rename = "layer_click")]
     LayerClick(LayerClickEvent),
     #[serde(rename = "layer_hover")]

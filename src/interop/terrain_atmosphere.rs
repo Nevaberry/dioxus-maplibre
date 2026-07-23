@@ -67,7 +67,7 @@ pub fn remove_sky_js(map_id: &str) -> String {
         r#"
         (function() {{
             {find}
-            map.setSky(null);
+            map.setSky(undefined);
             const skyState = window.__dioxus_maplibre_sky && window.__dioxus_maplibre_sky[{map_id_lit}];
             if (skyState) {{
                 skyState.hasValue = true;
@@ -82,7 +82,7 @@ pub fn remove_sky_js(map_id: &str) -> String {
 // Fog / Atmosphere
 // =============================================================================
 
-/// Generate JS to set fog/atmosphere
+/// Compatibility alias: MapLibre models fog as part of the sky specification.
 pub fn set_fog_js(map_id: &str, options_json: &str) -> String {
     let find = find_map_js(map_id);
     let map_id_lit = js_single_quoted(map_id);
@@ -90,7 +90,12 @@ pub fn set_fog_js(map_id: &str, options_json: &str) -> String {
         r#"
         (function() {{
             {find}
-            map.setFog({options_json});
+            map.setSky({options_json});
+            const skyState = window.__dioxus_maplibre_sky && window.__dioxus_maplibre_sky[{map_id_lit}];
+            if (skyState) {{
+                skyState.hasValue = true;
+                skyState.value = JSON.parse(JSON.stringify({options_json}));
+            }}
             const fogState = window.__dioxus_maplibre_fog && window.__dioxus_maplibre_fog[{map_id_lit}];
             if (fogState) {{
                 fogState.hasValue = true;
@@ -101,7 +106,7 @@ pub fn set_fog_js(map_id: &str, options_json: &str) -> String {
     )
 }
 
-/// Generate JS to remove fog/atmosphere
+/// Compatibility alias for removing the sky/fog specification.
 pub fn remove_fog_js(map_id: &str) -> String {
     let find = find_map_js(map_id);
     let map_id_lit = js_single_quoted(map_id);
@@ -109,7 +114,12 @@ pub fn remove_fog_js(map_id: &str) -> String {
         r#"
         (function() {{
             {find}
-            map.setFog(null);
+            map.setSky(undefined);
+            const skyState = window.__dioxus_maplibre_sky && window.__dioxus_maplibre_sky[{map_id_lit}];
+            if (skyState) {{
+                skyState.hasValue = true;
+                skyState.value = null;
+            }}
             const fogState = window.__dioxus_maplibre_fog && window.__dioxus_maplibre_fog[{map_id_lit}];
             if (fogState) {{
                 fogState.hasValue = true;
@@ -118,4 +128,19 @@ pub fn remove_fog_js(map_id: &str) -> String {
         }})();
         "#
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{remove_fog_js, set_fog_js};
+
+    #[test]
+    fn fog_compatibility_uses_maplibre_sky_api() {
+        let set = set_fog_js("map", r#"{"fog-color":"white"}"#);
+        let remove = remove_fog_js("map");
+        assert!(set.contains("map.setSky"));
+        assert!(!set.contains("map.setFog"));
+        assert!(remove.contains("map.setSky(undefined)"));
+        assert!(!remove.contains("map.setFog"));
+    }
 }

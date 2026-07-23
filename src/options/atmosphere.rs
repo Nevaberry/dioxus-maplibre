@@ -20,9 +20,9 @@ pub struct TerrainOptions {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SkyOptions(pub serde_json::Value);
 
-/// Options for setting fog/atmosphere (passthrough to MapLibre spec)
+/// Compatibility wrapper for MapLibre sky/fog properties.
 ///
-/// The fog spec supports color, horizon-blend, range, star-intensity, and more.
-/// Pass any valid MapLibre fog specification as a JSON value.
+/// Use the `SkySpecification` keys (`fog-color`, `fog-ground-blend`, and the
+/// other sky/horizon properties). `MapHandle::set_fog` delegates to `setSky`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FogOptions(pub serde_json::Value);

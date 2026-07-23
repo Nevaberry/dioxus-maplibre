@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_maplibre::{
-    Map, MapHandle, GeoJsonSourceOptions, LayerOptions,
-    LayerClickEvent, LayerHoverEvent, FeatureIdentifier, LatLng,
+    FeatureId, FeatureIdentifier, GeoJsonSourceOptions, LatLng, LayerClickEvent, LayerHoverEvent,
+    LayerOptions, Map, MapHandle,
 };
 use serde_json::json;
 
@@ -10,7 +10,7 @@ pub fn Interaction() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
     let mut clicked_feature = use_signal(|| None::<String>);
     let mut hovered_feature = use_signal(|| None::<String>);
-    let mut prev_hover_id = use_signal(|| None::<i64>);
+    let mut prev_hover_id = use_signal(|| None::<FeatureId>);
     let style: Signal<String> = use_context();
 
     rsx! {
@@ -81,7 +81,7 @@ pub fn Interaction() -> Element {
                             map.set_feature_state(
                                 &FeatureIdentifier {
                                     source: "interactive".into(),
-                                    id,
+                                    id: id.clone(),
                                     source_layer: None,
                                 },
                                 json!({"hover": true}),

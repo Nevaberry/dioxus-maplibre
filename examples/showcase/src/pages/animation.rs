@@ -1,14 +1,11 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{GeoJsonSourceOptions, LayerOptions, LatLng, Map, MapHandle};
+use dioxus_maplibre::{GeoJsonSourceOptions, LatLng, LayerOptions, Map, MapHandle};
 use gloo_timers::future::TimeoutFuture;
 use serde_json::json;
 
 /// Generate a point at angle `t` on a circle
 fn orbit_point(center_lng: f64, center_lat: f64, radius: f64, t: f64) -> [f64; 2] {
-    [
-        center_lng + radius * t.cos(),
-        center_lat + radius * t.sin(),
-    ]
+    [center_lng + radius * t.cos(), center_lat + radius * t.sin()]
 }
 
 #[component]

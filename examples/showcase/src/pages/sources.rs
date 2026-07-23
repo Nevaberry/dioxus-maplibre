@@ -1,7 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{
-    Map, MapHandle, GeoJsonSourceOptions, LayerOptions, LatLng,
-};
+use dioxus_maplibre::{GeoJsonSourceOptions, LatLng, LayerOptions, Map, MapHandle};
 use serde_json::json;
 
 #[component]

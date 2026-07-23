@@ -88,3 +88,50 @@ pub fn remove_image_js(map_id: &str, image_id: &str) -> String {
         "#
     )
 }
+
+/// Install a deterministic generated-image resolver for MapLibre 6.
+pub fn set_missing_image_resolver_js(map_id: &str, options_json: &str) -> String {
+    let find = find_map_js(map_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            const options = {options_json};
+            map.setMissingStyleImageResolver(async (id) => {{
+                if (map.hasImage(id)) return;
+                const width = Math.max(1, Math.trunc(Number(options.width) || 32));
+                const height = Math.max(1, Math.trunc(Number(options.height) || 32));
+                const cellSize = Math.max(1, Math.trunc(Number(options.cellSize) || 8));
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext('2d');
+                if (!context) return;
+                context.fillStyle = options.secondaryColor || '#bfdbfe';
+                context.fillRect(0, 0, width, height);
+                context.fillStyle = options.primaryColor || '#2563eb';
+                for (let y = 0; y < height; y += cellSize) {{
+                    for (let x = 0; x < width; x += cellSize) {{
+                        if (((x / cellSize) + (y / cellSize)) % 2 === 0) {{
+                            context.fillRect(x, y, cellSize, cellSize);
+                        }}
+                    }}
+                }}
+                map.addImage(id, context.getImageData(0, 0, width, height), {{
+                    pixelRatio: Number(options.pixelRatio) || 1
+                }});
+            }});
+        }})();
+        "#
+    )
+}
+
+pub fn clear_missing_image_resolver_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!("(function() {{ {find} map.setMissingStyleImageResolver(null); }})();")
+}
+
+pub fn list_images_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!("{find} return map.listImages();")
+}

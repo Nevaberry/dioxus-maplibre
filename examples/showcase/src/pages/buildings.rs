@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{GeoJsonSourceOptions, LayerOptions, LatLng, Map, MapHandle};
+use dioxus_maplibre::{GeoJsonSourceOptions, LatLng, LayerOptions, Map, MapHandle};
 use serde_json::json;
 
 fn building_data() -> serde_json::Value {

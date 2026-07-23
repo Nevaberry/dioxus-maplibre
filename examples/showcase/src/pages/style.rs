@@ -7,11 +7,26 @@ struct StyleEntry {
 }
 
 const STYLES: &[StyleEntry] = &[
-    StyleEntry { name: "Dark Matter", url: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" },
-    StyleEntry { name: "Positron", url: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json" },
-    StyleEntry { name: "Voyager", url: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" },
-    StyleEntry { name: "OSM Liberty", url: "https://tiles.openfreemap.org/styles/liberty" },
-    StyleEntry { name: "MapLibre Demo", url: "https://demotiles.maplibre.org/style.json" },
+    StyleEntry {
+        name: "Dark Matter",
+        url: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+    },
+    StyleEntry {
+        name: "Positron",
+        url: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+    },
+    StyleEntry {
+        name: "Voyager",
+        url: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+    },
+    StyleEntry {
+        name: "OSM Liberty",
+        url: "https://tiles.openfreemap.org/styles/liberty",
+    },
+    StyleEntry {
+        name: "MapLibre Demo",
+        url: "https://demotiles.maplibre.org/style.json",
+    },
 ];
 
 #[component]

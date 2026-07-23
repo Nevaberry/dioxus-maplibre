@@ -1,6 +1,6 @@
 # Codebase Map
 
-> Updated: 2026-02-08
+> Updated: 2026-07-23
 
 ## System Overview
 
@@ -29,6 +29,7 @@ src/
 │   ├── sources.rs
 │   ├── layers.rs
 │   ├── controls.rs
+│   ├── map_state.rs
 │   ├── markers.rs
 │   ├── popups.rs
 │   ├── navigation.rs
@@ -49,6 +50,8 @@ src/
 │   ├── overlays.rs
 │   ├── navigation.rs
 │   ├── atmosphere.rs
+│   ├── images.rs
+│   ├── map.rs
 │   └── queries.rs
 └── interop/
     ├── mod.rs
@@ -58,6 +61,7 @@ src/
     ├── sources.rs
     ├── layers.rs
     ├── controls.rs
+    ├── map_state.rs
     ├── markers.rs
     ├── popups.rs
     ├── navigation.rs
@@ -73,6 +77,7 @@ src/
 ## Component Layer
 
 - `Map`: map container, init/destroy, style/throttle live updates.
+- `MapOptions`: JSON passthrough for MapLibre construction options not modeled as dedicated props.
 - `use_map_handle()`: access handle from context.
 - Declarative components:
   - `MapSource`
@@ -84,7 +89,7 @@ src/
 ## Event Flow
 
 1. `interop::lifecycle::init_map_js` registers map/marker/layer listeners.
-2. JS emits tagged JSON events (`type` field).
+2. JS emits tagged JSON events (`type` field), including MapLibre 6 roll and lifecycle events.
 3. `Map` parses into `MapEvent`.
 4. `event_dispatch` routes typed events (including `Error`) to user handlers and sets context handle on `Ready`.
 
@@ -104,4 +109,6 @@ src/
 - `tests/events.rs`: event model and `MapEvent` envelope.
 - `tests/options.rs`: option serialization and builders.
 - `examples/showcase`: end-to-end manual behavior validation.
-- `e2e/tests`: Playwright smoke/interaction checks.
+- `e2e/tests/showcase.spec.ts`: every showcase route plus targeted MapLibre 6 browser checks.
+
+See [FEATURE_COVERAGE.md](FEATURE_COVERAGE.md) for the source/layer/control and route matrices.

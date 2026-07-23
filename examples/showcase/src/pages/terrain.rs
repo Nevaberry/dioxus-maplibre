@@ -1,8 +1,9 @@
 use dioxus::prelude::*;
 use dioxus_maplibre::{
-    Map, MapHandle, RasterDemSourceOptions, TerrainOptions,
-    FlyToOptions, ControlPosition, LatLng,
+    ControlPosition, FlyToOptions, LatLng, Map, MapHandle, MapOptions, RasterDemSourceOptions,
+    TerrainControlOptions, TerrainOptions,
 };
+use serde_json::json;
 
 #[component]
 pub fn Terrain() -> Element {
@@ -18,14 +19,26 @@ pub fn Terrain() -> Element {
                     center: LatLng::new(47.27, 11.39),
                     zoom: 12.0,
                     pitch: 70.0,
+                    options: MapOptions(json!({
+                        "maxPitch": 85,
+                        "terrainSkirtLength": "auto",
+                        "centerClampedToGround": true
+                    })),
                     on_ready: move |handle: MapHandle| {
                         handle.add_navigation_control(ControlPosition::TopRight);
 
                         // Add terrain DEM source (demo tiles cover Innsbruck area)
                         handle.add_raster_dem_source("terrain-dem", RasterDemSourceOptions {
-                            url: Some("https://demotiles.maplibre.org/terrain-tiles/tiles.json".into()),
+                            tiles: Some(vec!["https://demotiles.maplibre.org/terrain-tiles/{z}/{x}/{y}.png".into()]),
                             tile_size: Some(256),
+                            max_zoom: Some(12),
+                            bounds: Some([11.0, 47.0, 12.0, 48.0]),
+                            attribution: Some("AW3D30 (JAXA)".into()),
                             ..Default::default()
+                        });
+                        handle.add_terrain_control(ControlPosition::TopRight, TerrainControlOptions {
+                            source: "terrain-dem".into(),
+                            exaggeration: Some(1.5),
                         });
 
                         map_handle.set(Some(handle));
@@ -44,6 +57,7 @@ pub fn Terrain() -> Element {
                             let enabled = terrain_enabled();
                             rsx! {
                                 button {
+                                    "data-testid": "toggle-terrain",
                                     style: "padding: 8px; border-radius: 4px; border: none; background: #3b82f6; color: white; cursor: pointer;",
                                     onclick: move |_| {
                                         if enabled {
@@ -64,6 +78,7 @@ pub fn Terrain() -> Element {
                             let map = map.clone();
                             rsx! {
                                 button {
+                                    "data-testid": "fly-terrain",
                                     style: "padding: 8px; border-radius: 4px; border: none; background: #6366f1; color: white; cursor: pointer;",
                                     onclick: move |_| {
                                         map.fly_to(FlyToOptions {

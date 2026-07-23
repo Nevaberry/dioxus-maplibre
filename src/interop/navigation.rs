@@ -29,6 +29,9 @@ pub fn ease_to_js(map_id: &str, options_json: &str) -> String {
             if (opts.center && opts.center.lat !== undefined) {{
                 opts.center = [opts.center.lng, opts.center.lat];
             }}
+            if (opts.around && opts.around.lat !== undefined) {{
+                opts.around = [opts.around.lng, opts.around.lat];
+            }}
             map.easeTo(opts);
         }})();
         "#

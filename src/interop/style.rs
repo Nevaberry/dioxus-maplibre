@@ -18,9 +18,17 @@ pub fn set_move_event_throttle_js(map_id: &str, throttle_ms: u32) -> String {
 
 /// Generate JS to set the map style
 pub fn set_style_js(map_id: &str, style_url: &str) -> String {
+    set_style_value_js(map_id, &js_single_quoted(style_url))
+}
+
+/// Generate JS to set an inline style specification.
+pub fn set_style_json_js(map_id: &str, style_json: &str) -> String {
+    set_style_value_js(map_id, style_json)
+}
+
+fn set_style_value_js(map_id: &str, style_value: &str) -> String {
     let find = find_map_js(map_id);
     let map_id_lit = js_single_quoted(map_id);
-    let style_url_lit = js_single_quoted(style_url);
     format!(
         r#"
         (function() {{
@@ -107,15 +115,15 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
 
                     if (skyState && skyState.hasValue) {{
                         try {{
-                            map.setSky(skyState.value);
+                            map.setSky(skyState.value ?? undefined);
                         }} catch (err) {{
                             console.error('[dioxus-maplibre] Failed replaying sky state:', err);
                         }}
                     }}
 
-                    if (fogState && fogState.hasValue) {{
+                    if (fogState && fogState.hasValue && !(skyState && skyState.hasValue)) {{
                         try {{
-                            map.setFog(fogState.value);
+                            map.setSky(fogState.value ?? undefined);
                         }} catch (err) {{
                             console.error('[dioxus-maplibre] Failed replaying fog state:', err);
                         }}
@@ -174,7 +182,7 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
             map.on('style.load', onStyleLoad);
             map.on('styledata', onStyleData);
             awaitingNewStyle = true;
-            map.setStyle({style_url_lit});
+            map.setStyle({style_value});
 
             setTimeout(function() {{
                 if (!awaitingNewStyle || replayed) {{
@@ -197,4 +205,29 @@ pub fn set_style_js(map_id: &str, style_url: &str) -> String {
         }})();
         "#
     )
+}
+
+pub fn get_style_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!("{find} return map.getStyle() ?? null;")
+}
+
+pub fn set_light_js(map_id: &str, options_json: &str) -> String {
+    let find = find_map_js(map_id);
+    format!("(function() {{ {find} map.setLight({options_json}); }})();")
+}
+
+pub fn get_light_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!("{find} return map.getLight() ?? null;")
+}
+
+pub fn get_sky_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!("{find} return map.getSky() ?? null;")
+}
+
+pub fn get_terrain_js(map_id: &str) -> String {
+    let find = find_map_js(map_id);
+    format!("{find} return map.getTerrain() ?? null;")
 }

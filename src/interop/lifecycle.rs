@@ -20,6 +20,7 @@ pub fn init_map_js(
     max_zoom: Option<f64>,
     max_bounds: Option<&str>,
     cooperative_gestures: Option<bool>,
+    options_json: &str,
     move_event_throttle_ms: u32,
 ) -> String {
     let container_id_lit = js_single_quoted(container_id);
@@ -141,8 +142,11 @@ pub fn init_map_js(
             }}
 
             try {{
+                const rawExtraOptions = {options_json};
+                const extraOptions = rawExtraOptions && typeof rawExtraOptions === 'object' && !Array.isArray(rawExtraOptions)
+                    ? rawExtraOptions
+                    : {{}};
                 const map = new maplibregl.Map({{
-                    container,
                     style: {style_lit},
                     center: [{center_lng}, {center_lat}],
                     zoom: {zoom},
@@ -152,7 +156,8 @@ pub fn init_map_js(
                     {max_zoom_param}
                     {max_bounds_param}
                     {cooperative_gestures_param}
-                    attributionControl: true
+                    ...extraOptions,
+                    container
                 }});
 
                 const initialMoveEventThrottleMs = Number({move_event_throttle_ms});
@@ -305,6 +310,35 @@ pub fn init_map_js(
                         pitch: map.getPitch()
                     }}));
                 }});
+
+                map.on('rollend', function() {{
+                    dioxus.send(JSON.stringify({{
+                        type: 'roll',
+                        roll: map.getRoll()
+                    }}));
+                }});
+
+                const lifecycleEvents = [
+                    'idle', 'style.load', 'terrain', 'projectiontransition',
+                    'dragstart', 'dragend', 'boxzoomstart', 'boxzoomend',
+                    'rollstart', 'rollend', 'webglcontextlost',
+                    'webglcontextrestored', 'cooperativegestureprevented'
+                ];
+                for (const eventName of lifecycleEvents) {{
+                    map.on(eventName, function() {{
+                        const projection = typeof map.getProjection === 'function'
+                            ? map.getProjection()
+                            : null;
+                        dioxus.send(JSON.stringify({{
+                            type: 'lifecycle',
+                            event: eventName,
+                            detail: {{
+                                roll: typeof map.getRoll === 'function' ? map.getRoll() : 0,
+                                projection: projection || null
+                            }}
+                        }}));
+                    }});
+                }}
 
                 map.on('load', function() {{
                     dioxus.send(JSON.stringify({{ type: 'ready' }}));

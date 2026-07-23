@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::options::FeatureId;
+
 /// A geographic coordinate (latitude/longitude pair)
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Default)]
 pub struct LatLng {
@@ -95,9 +97,9 @@ impl Bounds {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryFeature {
-    /// Feature ID (numeric, if present)
+    /// Numeric or string feature ID, if present.
     #[serde(default)]
-    pub id: Option<i64>,
+    pub id: Option<FeatureId>,
     /// GeoJSON geometry
     pub geometry: serde_json::Value,
     /// Feature properties

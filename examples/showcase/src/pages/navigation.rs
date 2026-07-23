@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_maplibre::{
-    Map, MapHandle, FlyToOptions, EaseToOptions, JumpToOptions,
-    FitBoundsOptions, Padding, Bounds, LatLng, MapMoveEvent,
+    Bounds, EaseToOptions, FitBoundsOptions, FlyToOptions, JumpToOptions, LatLng, Map, MapHandle,
+    MapMoveEvent, Padding,
 };
 
 struct City {
@@ -10,10 +10,34 @@ struct City {
 }
 
 const CITIES: &[City] = &[
-    City { name: "Helsinki", pos: LatLng { lat: 60.1699, lng: 24.9384 } },
-    City { name: "Tampere", pos: LatLng { lat: 61.4978, lng: 23.7610 } },
-    City { name: "Turku", pos: LatLng { lat: 60.4518, lng: 22.2666 } },
-    City { name: "Oulu", pos: LatLng { lat: 65.0121, lng: 25.4651 } },
+    City {
+        name: "Helsinki",
+        pos: LatLng {
+            lat: 60.1699,
+            lng: 24.9384,
+        },
+    },
+    City {
+        name: "Tampere",
+        pos: LatLng {
+            lat: 61.4978,
+            lng: 23.7610,
+        },
+    },
+    City {
+        name: "Turku",
+        pos: LatLng {
+            lat: 60.4518,
+            lng: 22.2666,
+        },
+    },
+    City {
+        name: "Oulu",
+        pos: LatLng {
+            lat: 65.0121,
+            lng: 25.4651,
+        },
+    },
 ];
 
 #[component]

@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_maplibre::{
-    Bounds, GeoJsonSourceOptions, LayerOptions, LatLng, Map, MapClickEvent, MapHandle,
+    Bounds, GeoJsonSourceOptions, LatLng, LayerOptions, Map, MapClickEvent, MapHandle,
     MapMoveEvent, QueryOptions,
 };
 use serde_json::json;
@@ -67,7 +67,7 @@ async fn refresh_viewport_count(
 #[component]
 pub fn Query() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
-    let mut query_result = use_signal(|| String::new());
+    let mut query_result = use_signal(String::new);
     let mut feature_count = use_signal(|| 0usize);
     let mut move_event_count = use_signal(|| 0usize);
     let mut move_event_throttle_ms = use_signal(|| 80u32);

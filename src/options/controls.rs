@@ -2,6 +2,32 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Passthrough options for any built-in MapLibre control.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct ControlOptions(pub serde_json::Value);
+
+impl Default for ControlOptions {
+    fn default() -> Self {
+        Self(serde_json::json!({}))
+    }
+}
+
+impl ControlOptions {
+    pub fn new(value: serde_json::Value) -> Self {
+        Self(value)
+    }
+}
+
+/// Options required by MapLibre's terrain toggle control.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TerrainControlOptions {
+    pub source: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exaggeration: Option<f64>,
+}
+
 /// Position of a map control on the map canvas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]

@@ -19,15 +19,7 @@ pub fn add_popup_js(
         (function() {{
             {find}
             const opts = {options_json};
-            const popupOpts = {{}};
-            if (opts.offset) popupOpts.offset = opts.offset;
-            if (opts.anchor) popupOpts.anchor = opts.anchor;
-            if (opts.closeButton != null) popupOpts.closeButton = opts.closeButton;
-            if (opts.closeOnClick != null) popupOpts.closeOnClick = opts.closeOnClick;
-            if (opts.maxWidth) popupOpts.maxWidth = opts.maxWidth;
-            if (opts.className) popupOpts.className = opts.className;
-
-            const popup = new maplibregl.Popup(popupOpts)
+            const popup = new maplibregl.Popup(opts)
                 .setLngLat([{lng}, {lat}])
                 .setHTML(`{escaped_html}`)
                 .addTo(map);

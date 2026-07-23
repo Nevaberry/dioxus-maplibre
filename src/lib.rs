@@ -42,16 +42,19 @@ pub use types::{Bounds, LatLng, MapPosition, Point, QueryFeature};
 // Re-export public API — Events
 pub use events::{
     LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapErrorEvent, MapEvent, MapMoveEvent, MapPitchEvent, MapReadyEvent, MapRotateEvent,
-    MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
+    MapErrorEvent, MapEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent, MapReadyEvent,
+    MapRollEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent,
+    MarkerDragStartEvent, MarkerHoverEvent,
 };
 
 // Re-export public API — Options
 pub use options::{
-    ControlPosition, EaseToOptions, FeatureIdentifier, FitBoundsOptions, FlyToOptions, FogOptions,
-    GeoJsonSourceOptions, ImageSourceOptions, JumpToOptions, LayerOptions, MarkerOptions, Padding,
-    PopupOptions, QueryOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions,
-    TerrainOptions, VectorSourceOptions,
+    CanvasSourceOptions, ControlOptions, ControlPosition, EaseToOptions, FeatureId,
+    FeatureIdentifier, FitBoundsOptions, FlyToOptions, FogOptions, GeoJsonSourceOptions,
+    ImageSourceOptions, JumpToOptions, LayerOptions, MapInteraction, MapOptions, MarkerOptions,
+    MissingImageOptions, Padding, PopupOptions, ProjectionOptions, QueryOptions,
+    RasterDemSourceOptions, RasterSourceOptions, SkyOptions, SourceOptions, TerrainControlOptions,
+    TerrainOptions, VectorSourceOptions, VideoSourceOptions,
 };
 
 // Re-export public API — Handle & Component

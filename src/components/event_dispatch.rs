@@ -4,8 +4,9 @@ use dioxus::prelude::{EventHandler, WritableExt};
 
 use crate::events::{
     LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapErrorEvent, MapEvent, MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent,
-    MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
+    MapErrorEvent, MapEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent, MapRollEvent,
+    MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent,
+    MarkerHoverEvent,
 };
 use crate::handle::MapHandle;
 
@@ -26,6 +27,8 @@ pub(crate) struct MapEventHandlers {
     pub on_zoom: Option<EventHandler<MapZoomEvent>>,
     pub on_rotate: Option<EventHandler<MapRotateEvent>>,
     pub on_pitch: Option<EventHandler<MapPitchEvent>>,
+    pub on_roll: Option<EventHandler<MapRollEvent>>,
+    pub on_lifecycle: Option<EventHandler<MapLifecycleEvent>>,
     pub on_layer_click: Option<EventHandler<LayerClickEvent>>,
     pub on_layer_hover: Option<EventHandler<LayerHoverEvent>>,
 }
@@ -92,6 +95,16 @@ impl MapEventHandlers {
             }
             MapEvent::Pitch(event) => {
                 if let Some(handler) = &self.on_pitch {
+                    handler.call(event);
+                }
+            }
+            MapEvent::Roll(event) => {
+                if let Some(handler) = &self.on_roll {
+                    handler.call(event);
+                }
+            }
+            MapEvent::Lifecycle(event) => {
+                if let Some(handler) = &self.on_lifecycle {
                     handler.call(event);
                 }
             }

@@ -25,6 +25,14 @@ pub struct FlyToOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pitch: Option<f64>,
 
+    /// Target roll around the camera boresight.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roll: Option<f64>,
+
+    /// Target center elevation in meters above sea level.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elevation: Option<f64>,
+
     /// Animation duration in milliseconds
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<u32>,
@@ -32,6 +40,38 @@ pub struct FlyToOptions {
     /// If true, animation is considered essential (not affected by prefers-reduced-motion)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub essential: Option<bool>,
+
+    /// Whether animation should run.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub animate: Option<bool>,
+
+    /// Target offset in screen pixels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offset: Option<[f64; 2]>,
+
+    /// Keep camera height constant relative to sea level during terrain movement.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub freeze_elevation: Option<bool>,
+
+    /// Flight-path curve.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub curve: Option<f64>,
+
+    /// Lowest zoom allowed along the flight arc.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_zoom: Option<f64>,
+
+    /// Average flight speed in screenfuls per curve unit.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed: Option<f64>,
+
+    /// Average linear speed in screenfuls per second.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub screen_speed: Option<f64>,
+
+    /// Maximum animation duration in milliseconds.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_duration: Option<u32>,
 
     /// Viewport padding
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,9 +98,39 @@ pub struct EaseToOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pitch: Option<f64>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roll: Option<f64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elevation: Option<f64>,
+
     /// Animation duration in milliseconds
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<u32>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub essential: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub animate: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offset: Option<[f64; 2]>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub freeze_elevation: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delay_end_events: Option<u32>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub around: Option<LatLng>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ease_id: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub no_move_start: Option<bool>,
 
     /// Viewport padding
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -87,6 +157,12 @@ pub struct JumpToOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pitch: Option<f64>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roll: Option<f64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elevation: Option<f64>,
+
     /// Viewport padding
     #[serde(skip_serializing_if = "Option::is_none")]
     pub padding: Option<Padding>,
@@ -111,4 +187,48 @@ pub struct FitBoundsOptions {
     /// If true, use linear easing (no curve)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub linear: Option<bool>,
+
+    /// Target bearing.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bearing: Option<f64>,
+
+    /// Target pitch.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pitch: Option<f64>,
+
+    /// Target roll.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roll: Option<f64>,
+
+    /// Target elevation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elevation: Option<f64>,
+
+    /// Target offset in screen pixels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offset: Option<[f64; 2]>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub essential: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub animate: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub freeze_elevation: Option<bool>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub curve: Option<f64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_zoom: Option<f64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed: Option<f64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub screen_speed: Option<f64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_duration: Option<u32>,
 }

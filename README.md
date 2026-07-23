@@ -3,7 +3,9 @@
 [![Crates.io](https://img.shields.io/crates/v/dioxus-maplibre.svg)](https://crates.io/crates/dioxus-maplibre)
 [![License](https://img.shields.io/crates/l/dioxus-maplibre.svg)](https://github.com/Nevaberry/dioxus-maplibre#license)
 
-A [MapLibre GL JS](https://maplibre.org/) wrapper for [Dioxus](https://dioxuslabs.com/) 0.7+.
+A [MapLibre GL JS](https://maplibre.org/) 6 wrapper for [Dioxus](https://dioxuslabs.com/) 0.7. The crate combines typed Rust APIs for common operations with JSON passthroughs and scoped JavaScript evaluation for the full, evolving MapLibre surface.
+
+Current baseline: Rust 1.97.1, Dioxus 0.7.9, and MapLibre GL JS 6.0.0. MapLibre 6 requires WebGL2 and is distributed as an ES module.
 
 ## Installation
 
@@ -92,24 +94,33 @@ fn App() -> Element {
 ## Public API
 
 - `Map` root component
-- Event callbacks including `on_ready` and `on_error`
-- `MapHandle` imperative API
+- Future-proof `MapOptions` plus typed camera, bounds, projection, and interaction APIs
+- Typed pointer, camera, marker, layer, roll, error, and lifecycle callbacks
+- `MapHandle` imperative API with style replay across style switches
 - `use_map_handle()` context hook
 - Declarative helpers: `MapSource`, `MapLayer`, `MapMarker`, `MapPopup`, `MapControl`
-- Options/types/events exported from crate root
+- All core source types: GeoJSON, vector (MVT/MLT), raster, raster DEM, image, video, canvas, and custom passthrough
+- All ten style layer types: background, fill, line, symbol, raster, circle, fill extrusion, heatmap, hillshade, and color relief
+- Navigation, geolocation, scale, fullscreen, attribution, globe, logo, and terrain controls
+- Markers, popups, images, missing-image resolution, queries, feature/global state, terrain, sky/fog, globe, animation, and raw eval integrations
+- Options, types, and events exported from the crate root
+
+See [MapLibre feature coverage](docs/FEATURE_COVERAGE.md) for the API-to-showcase matrix and the boundary between MapLibre core and third-party plugins.
 
 ## Development
 
 ```bash
-cargo test
-cargo check
+cargo fmt --check
+cargo test --locked --all-features
+cargo clippy --locked --all-targets --all-features -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --locked --no-deps --all-features
 ```
 
 Run showcase app:
 
 ```bash
 cd examples/showcase
-dx serve --port 8080
+dx serve --web --port 8080 --locked
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup and e2e workflow.

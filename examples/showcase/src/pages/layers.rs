@@ -1,7 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{
-    Map, MapHandle, GeoJsonSourceOptions, LayerOptions, LatLng,
-};
+use dioxus_maplibre::{GeoJsonSourceOptions, LatLng, LayerOptions, Map, MapHandle};
 use serde_json::json;
 
 #[component]
@@ -63,7 +61,8 @@ pub fn Layers() -> Element {
                             .paint(json!({
                                 "line-color": "#ef4444",
                                 "line-width": 4,
-                                "line-dasharray": [2, 1]
+                                "line-dasharray": [2, 1],
+                                "line-layer-opacity": 0.95
                             }))
                             .layout(json!({
                                 "line-cap": "round",
@@ -91,7 +90,8 @@ pub fn Layers() -> Element {
                         handle.add_layer(LayerOptions::fill("area", "area-fill")
                             .paint(json!({
                                 "fill-color": "#22c55e",
-                                "fill-opacity": 0.3
+                                "fill-opacity": 0.3,
+                                "fill-layer-opacity": 0.95
                             }))
                         );
 

@@ -31,7 +31,10 @@ impl MapHandle {
         self.fire_and_forget(|| crate::interop::remove_sky_js(&self.map_id));
     }
 
-    /// Set fog/atmosphere properties
+    /// Compatibility alias for `set_sky`.
+    ///
+    /// MapLibre GL JS models fog through `SkySpecification` properties such as
+    /// `fog-color` and `fog-ground-blend`; it does not expose `map.setFog`.
     pub fn set_fog(&self, options: FogOptions) {
         self.fire_and_forget(|| {
             let json = serde_json::to_string(&options.0).unwrap_or_default();
@@ -39,7 +42,7 @@ impl MapHandle {
         });
     }
 
-    /// Remove fog/atmosphere
+    /// Compatibility alias for `remove_sky`.
     pub fn remove_fog(&self) {
         self.fire_and_forget(|| crate::interop::remove_fog_js(&self.map_id));
     }

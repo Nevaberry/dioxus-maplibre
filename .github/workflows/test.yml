@@ -18,6 +18,8 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.97.1
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
@@ -43,6 +45,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.97.1
           targets: wasm32-unknown-unknown
 
       - name: Install Dioxus CLI

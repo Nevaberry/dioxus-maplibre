@@ -7,6 +7,7 @@ mod getters;
 mod images;
 mod layer_events;
 mod layers;
+mod map_state;
 mod markers;
 mod navigation;
 mod padding;

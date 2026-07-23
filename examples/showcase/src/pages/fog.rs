@@ -1,5 +1,7 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{FogOptions, LatLng, Map, MapHandle};
+use dioxus_maplibre::{
+    FogOptions, LatLng, Map, MapHandle, MapOptions, RasterDemSourceOptions, TerrainOptions,
+};
 use serde_json::json;
 
 #[component]
@@ -14,17 +16,32 @@ pub fn Fog() -> Element {
             div { style: "flex: 1; position: relative;",
                 Map {
                     style: style(),
-                    center: LatLng::new(60.17, 24.94),
-                    zoom: 11.0,
-                    pitch: 45.0,
+                    center: LatLng::new(47.27, 11.39),
+                    zoom: 10.5,
+                    pitch: 68.0,
+                    options: MapOptions(json!({ "maxPitch": 85, "terrainSkirtLength": "auto" })),
                     on_ready: move |handle: MapHandle| {
-                        // Apply default dawn fog
+                        handle.add_raster_dem_source("fog-dem", RasterDemSourceOptions {
+                            tiles: Some(vec!["https://demotiles.maplibre.org/terrain-tiles/{z}/{x}/{y}.png".into()]),
+                            tile_size: Some(256),
+                            max_zoom: Some(12),
+                            bounds: Some([11.0, 47.0, 12.0, 48.0]),
+                            attribution: Some("AW3D30 (JAXA)".into()),
+                            ..Default::default()
+                        });
+                        handle.set_terrain(TerrainOptions {
+                            source: "fog-dem".into(),
+                            exaggeration: Some(1.2),
+                        });
+                        // `set_fog` is the backward-compatible alias for MapLibre's setSky.
                         handle.set_fog(FogOptions(json!({
-                            "color": "#dc9f9f",
-                            "horizon-blend": 0.05,
-                            "high-color": "#245bde",
-                            "space-color": "#000000",
-                            "star-intensity": 0.15
+                            "sky-color": "#7aa5d2",
+                            "sky-horizon-blend": 0.55,
+                            "horizon-color": "#f6c6a8",
+                            "horizon-fog-blend": 0.75,
+                            "fog-color": "#f1c6b8",
+                            "fog-ground-blend": 0.65,
+                            "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 12, 0]
                         })));
 
                         map_handle.set(Some(handle));
@@ -33,7 +50,8 @@ pub fn Fog() -> Element {
             }
             div { style: "width: 280px; background: #16213e; color: #e0e0e0; padding: 16px; font-size: 13px;",
                 h3 { style: "margin: 0 0 12px 0;", "Fog / Atmosphere" }
-                p { "Atmospheric effects with fog presets." }
+                p { "MapLibre sky, horizon, atmosphere, and terrain fog properties." }
+                p { "The legacy set_fog API now correctly delegates to setSky." }
                 p { "data-testid": "fog-preset", style: "margin-top: 8px;", "Preset: {preset}" }
 
                 if let Some(ref map) = *map_handle.read() {
@@ -50,11 +68,13 @@ pub fn Fog() -> Element {
                                             map.remove_fog();
                                         } else {
                                             map.set_fog(FogOptions(json!({
-                                                "color": "#dc9f9f",
-                                                "horizon-blend": 0.05,
-                                                "high-color": "#245bde",
-                                                "space-color": "#000000",
-                                                "star-intensity": 0.15
+                                                "sky-color": "#7aa5d2",
+                                                "sky-horizon-blend": 0.55,
+                                                "horizon-color": "#f6c6a8",
+                                                "horizon-fog-blend": 0.75,
+                                                "fog-color": "#f1c6b8",
+                                                "fog-ground-blend": 0.65,
+                                                "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 12, 0]
                                             })));
                                             preset.set("dawn".into());
                                         }
@@ -72,11 +92,13 @@ pub fn Fog() -> Element {
                                     style: "padding: 8px; border-radius: 4px; border: none; background: #f59e0b; color: white; cursor: pointer;",
                                     onclick: move |_| {
                                         map.set_fog(FogOptions(json!({
-                                            "color": "#dc9f9f",
-                                            "horizon-blend": 0.05,
-                                            "high-color": "#245bde",
-                                            "space-color": "#000000",
-                                            "star-intensity": 0.15
+                                            "sky-color": "#7aa5d2",
+                                            "sky-horizon-blend": 0.55,
+                                            "horizon-color": "#f6c6a8",
+                                            "horizon-fog-blend": 0.75,
+                                            "fog-color": "#f1c6b8",
+                                            "fog-ground-blend": 0.65,
+                                            "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 12, 0]
                                         })));
                                         fog_enabled.set(true);
                                         preset.set("dawn".into());
@@ -93,11 +115,13 @@ pub fn Fog() -> Element {
                                     style: "padding: 8px; border-radius: 4px; border: none; background: #1e1b4b; color: white; cursor: pointer;",
                                     onclick: move |_| {
                                         map.set_fog(FogOptions(json!({
-                                            "color": "#0a0a2e",
-                                            "horizon-blend": 0.02,
-                                            "high-color": "#000033",
-                                            "space-color": "#000000",
-                                            "star-intensity": 0.8
+                                            "sky-color": "#080d2b",
+                                            "sky-horizon-blend": 0.35,
+                                            "horizon-color": "#172554",
+                                            "horizon-fog-blend": 0.7,
+                                            "fog-color": "#111827",
+                                            "fog-ground-blend": 0.8,
+                                            "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 12, 0]
                                         })));
                                         fog_enabled.set(true);
                                         preset.set("night".into());

@@ -4,8 +4,9 @@ use dioxus::prelude::*;
 
 use crate::handle::MapHandle;
 use crate::options::{
-    ControlPosition, GeoJsonSourceOptions, ImageSourceOptions, LayerOptions, MarkerOptions,
-    PopupOptions, RasterDemSourceOptions, RasterSourceOptions, VectorSourceOptions,
+    CanvasSourceOptions, ControlOptions, ControlPosition, GeoJsonSourceOptions, ImageSourceOptions,
+    LayerOptions, MarkerOptions, PopupOptions, RasterDemSourceOptions, RasterSourceOptions,
+    SourceOptions, TerrainControlOptions, VectorSourceOptions, VideoSourceOptions,
 };
 use crate::types::LatLng;
 
@@ -18,15 +19,24 @@ pub enum MapSourceKind {
     Raster(RasterSourceOptions),
     RasterDem(RasterDemSourceOptions),
     Image(ImageSourceOptions),
+    Video(VideoSourceOptions),
+    Canvas(CanvasSourceOptions),
+    Custom {
+        source_type: String,
+        options: SourceOptions,
+    },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum MapControlKind {
     Navigation,
     Geolocate,
     Scale,
     Fullscreen,
     Attribution,
+    Globe,
+    Logo,
+    Terrain(TerrainControlOptions),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -57,10 +67,11 @@ struct PopupState {
     options: PopupOptions,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 struct ControlState {
     kind: MapControlKind,
     position: ControlPosition,
+    options: ControlOptions,
 }
 
 fn add_source(map: &MapHandle, source: &SourceState) {
@@ -70,6 +81,12 @@ fn add_source(map: &MapHandle, source: &SourceState) {
         MapSourceKind::Raster(options) => map.add_raster_source(&source.id, options.clone()),
         MapSourceKind::RasterDem(options) => map.add_raster_dem_source(&source.id, options.clone()),
         MapSourceKind::Image(options) => map.add_image_source(&source.id, options.clone()),
+        MapSourceKind::Video(options) => map.add_video_source(&source.id, options.clone()),
+        MapSourceKind::Canvas(options) => map.add_canvas_source(&source.id, options.clone()),
+        MapSourceKind::Custom {
+            source_type,
+            options,
+        } => map.add_source(&source.id, source_type, options.clone()),
     }
 }
 
@@ -92,7 +109,14 @@ fn try_update_geojson_source(map: &MapHandle, previous: &SourceState, next: &Sou
         && previous_opts.cluster_max_zoom == next_opts.cluster_max_zoom
         && previous_opts.cluster_properties == next_opts.cluster_properties
         && previous_opts.generate_id == next_opts.generate_id
-        && previous_opts.promote_id == next_opts.promote_id;
+        && previous_opts.promote_id == next_opts.promote_id
+        && previous_opts.max_zoom == next_opts.max_zoom
+        && previous_opts.buffer == next_opts.buffer
+        && previous_opts.tolerance == next_opts.tolerance
+        && previous_opts.line_metrics == next_opts.line_metrics
+        && previous_opts.cluster_min_points == next_opts.cluster_min_points
+        && previous_opts.attribution == next_opts.attribution
+        && previous_opts.filter == next_opts.filter;
 
     if unchanged_non_data_fields {
         map.update_geojson_source(&next.id, next_opts.data.clone());
@@ -122,23 +146,43 @@ fn add_layer_bindings(map: &MapHandle, layer: &LayerState) {
     }
 }
 
-fn remove_control(map: &MapHandle, control: ControlState) {
-    match control.kind {
+fn remove_control(map: &MapHandle, control: &ControlState) {
+    match &control.kind {
         MapControlKind::Navigation => map.remove_navigation_control(control.position),
         MapControlKind::Geolocate => map.remove_geolocate_control(control.position),
         MapControlKind::Scale => map.remove_scale_control(control.position),
         MapControlKind::Fullscreen => map.remove_fullscreen_control(control.position),
         MapControlKind::Attribution => map.remove_attribution_control(control.position),
+        MapControlKind::Globe => map.remove_globe_control(control.position),
+        MapControlKind::Logo => map.remove_logo_control(control.position),
+        MapControlKind::Terrain(_) => map.remove_terrain_control(control.position),
     }
 }
 
-fn add_control(map: &MapHandle, control: ControlState) {
-    match control.kind {
-        MapControlKind::Navigation => map.add_navigation_control(control.position),
-        MapControlKind::Geolocate => map.add_geolocate_control(control.position),
-        MapControlKind::Scale => map.add_scale_control(control.position),
-        MapControlKind::Fullscreen => map.add_fullscreen_control(control.position),
-        MapControlKind::Attribution => map.add_attribution_control(control.position),
+fn add_control(map: &MapHandle, control: &ControlState) {
+    match &control.kind {
+        MapControlKind::Navigation => {
+            map.add_navigation_control_with_options(control.position, control.options.clone());
+        }
+        MapControlKind::Geolocate => {
+            map.add_geolocate_control_with_options(control.position, control.options.clone());
+        }
+        MapControlKind::Scale => {
+            map.add_scale_control_with_options(control.position, control.options.clone());
+        }
+        MapControlKind::Fullscreen => {
+            map.add_fullscreen_control_with_options(control.position, control.options.clone());
+        }
+        MapControlKind::Attribution => {
+            map.add_attribution_control_with_options(control.position, control.options.clone());
+        }
+        MapControlKind::Globe => map.add_globe_control(control.position),
+        MapControlKind::Logo => {
+            map.add_logo_control(control.position, control.options.clone());
+        }
+        MapControlKind::Terrain(options) => {
+            map.add_terrain_control(control.position, options.clone());
+        }
     }
 }
 
@@ -375,11 +419,14 @@ pub fn MapPopup(props: MapPopupProps) -> Element {
 }
 
 /// Declaratively add a control to the map.
-#[derive(Props, Clone, PartialEq, Eq)]
+#[derive(Props, Clone, PartialEq)]
 pub struct MapControlProps {
     pub kind: MapControlKind,
     #[props(default)]
     pub position: ControlPosition,
+    /// Upstream options for controls other than `Terrain` and `Globe`.
+    #[props(default)]
+    pub options: ControlOptions,
 }
 
 #[component]
@@ -390,6 +437,7 @@ pub fn MapControl(props: MapControlProps) -> Element {
     let desired_control = ControlState {
         kind: props.kind,
         position: props.position,
+        options: props.options,
     };
 
     use_effect(move || {
@@ -400,23 +448,23 @@ pub fn MapControl(props: MapControlProps) -> Element {
             return;
         };
 
-        let previous = *applied_control.peek();
-        if previous == Some(desired_control) {
+        let previous = applied_control.peek().clone();
+        if previous.as_ref() == Some(&desired_control) {
             return;
         }
 
-        if let Some(previous) = previous {
+        if let Some(previous) = &previous {
             remove_control(&map, previous);
         }
 
-        add_control(&map, desired_control);
-        applied_control.set(Some(desired_control));
+        add_control(&map, &desired_control);
+        applied_control.set(Some(desired_control.clone()));
     });
 
     use_drop(move || {
         if let Some(handle_signal) = handle_signal
             && let Some(map) = handle_signal.peek().clone()
-            && let Some(control) = applied_control.peek().as_ref().copied()
+            && let Some(control) = applied_control.peek().as_ref()
         {
             remove_control(&map, control);
         }

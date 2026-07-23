@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{GeoJsonSourceOptions, LayerOptions, LatLng, Map, MapErrorEvent, MapHandle};
+use dioxus_maplibre::{GeoJsonSourceOptions, LatLng, LayerOptions, Map, MapErrorEvent, MapHandle};
 use serde_json::json;
 
 const MAX_POINTS_PER_SHAPE: u32 = 1_000_000;
@@ -382,12 +382,18 @@ fn circle_radius_expression(size_multiplier: f64) -> serde_json::Value {
         "interpolate",
         ["exponential", 1.35],
         ["zoom"],
-        2, 1.5 * size_multiplier,
-        4, 3.0 * size_multiplier,
-        6, 6.5 * size_multiplier,
-        8, 12.0 * size_multiplier,
-        10, 20.0 * size_multiplier,
-        12, 30.0 * size_multiplier
+        2,
+        1.5 * size_multiplier,
+        4,
+        3.0 * size_multiplier,
+        6,
+        6.5 * size_multiplier,
+        8,
+        12.0 * size_multiplier,
+        10,
+        20.0 * size_multiplier,
+        12,
+        30.0 * size_multiplier
     ])
 }
 
@@ -396,17 +402,35 @@ fn shape_icon_size_expression() -> serde_json::Value {
         "interpolate",
         ["exponential", 1.3],
         ["zoom"],
-        2, 0.12,
-        4, 0.2,
-        6, 0.32,
-        8, 0.48,
-        10, 0.7,
-        12, 0.95
+        2,
+        0.12,
+        4,
+        0.2,
+        6,
+        0.32,
+        8,
+        0.48,
+        10,
+        0.7,
+        12,
+        0.95
     ])
 }
 
 fn fast_shape_circle_radius_expression() -> serde_json::Value {
-    json!(["interpolate", ["linear"], ["zoom"], 2, 0.6, 6, 1.1, 10, 2.0, 12, 2.6])
+    json!([
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        2,
+        0.6,
+        6,
+        1.1,
+        10,
+        2.0,
+        12,
+        2.6
+    ])
 }
 
 fn build_generation_script(
@@ -456,39 +480,46 @@ fn add_stress_layers(handle: &MapHandle, circle_size_multiplier: f64) {
         },
     );
 
-    handle.add_layer(LayerOptions::circle(CIRCLE_LAYER, CIRCLE_SOURCE).paint(json!({
-        "circle-color": "#22d3ee",
-        "circle-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0.72, 8, 0.92],
-        "circle-radius": circle_radius_expression(circle_size_multiplier),
-        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 2, 0.8, 10, 1.8],
-        "circle-stroke-color": "#ecfeff"
-    })));
-
+    handle.add_layer(
+        LayerOptions::circle(CIRCLE_LAYER, CIRCLE_SOURCE).paint(json!({
+            "circle-color": "#22d3ee",
+            "circle-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0.72, 8, 0.92],
+            "circle-radius": circle_radius_expression(circle_size_multiplier),
+            "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 2, 0.8, 10, 1.8],
+            "circle-stroke-color": "#ecfeff"
+        })),
+    );
 }
 
 fn add_shape_icon_layers(handle: &MapHandle) {
     let icon_size = shape_icon_size_expression();
 
-    handle.add_layer(LayerOptions::symbol(SQUARE_LAYER, SQUARE_SOURCE).layout(json!({
-        "icon-image": SQUARE_ICON,
-        "icon-size": icon_size,
-        "icon-allow-overlap": true,
-        "icon-ignore-placement": true
-    })));
+    handle.add_layer(
+        LayerOptions::symbol(SQUARE_LAYER, SQUARE_SOURCE).layout(json!({
+            "icon-image": SQUARE_ICON,
+            "icon-size": icon_size,
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true
+        })),
+    );
 
-    handle.add_layer(LayerOptions::symbol(TRIANGLE_LAYER, TRIANGLE_SOURCE).layout(json!({
-        "icon-image": TRIANGLE_ICON,
-        "icon-size": shape_icon_size_expression(),
-        "icon-allow-overlap": true,
-        "icon-ignore-placement": true
-    })));
+    handle.add_layer(
+        LayerOptions::symbol(TRIANGLE_LAYER, TRIANGLE_SOURCE).layout(json!({
+            "icon-image": TRIANGLE_ICON,
+            "icon-size": shape_icon_size_expression(),
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true
+        })),
+    );
 
-    handle.add_layer(LayerOptions::symbol(DIAMOND_LAYER, DIAMOND_SOURCE).layout(json!({
-        "icon-image": DIAMOND_ICON,
-        "icon-size": shape_icon_size_expression(),
-        "icon-allow-overlap": true,
-        "icon-ignore-placement": true
-    })));
+    handle.add_layer(
+        LayerOptions::symbol(DIAMOND_LAYER, DIAMOND_SOURCE).layout(json!({
+            "icon-image": DIAMOND_ICON,
+            "icon-size": shape_icon_size_expression(),
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true
+        })),
+    );
 }
 
 fn force_shape_icon_layouts(handle: &MapHandle) {
@@ -649,7 +680,11 @@ pub fn Stress() -> Element {
     } else {
         0
     };
-    let selected_diamond_count = if diamond_enabled() { diamond_count() } else { 0 };
+    let selected_diamond_count = if diamond_enabled() {
+        diamond_count()
+    } else {
+        0
+    };
 
     let planned_total_points = u64::from(selected_circle_count)
         + u64::from(selected_square_count)

@@ -7,8 +7,11 @@
 git clone https://github.com/Nevaberry/dioxus-maplibre
 cd dioxus-maplibre
 
-# Install Dioxus CLI (for running examples)
-cargo install dioxus-cli
+# The repository pins Rust 1.97.1 in rust-toolchain.toml.
+rustup show active-toolchain
+
+# Install the matching Dioxus CLI (for running examples)
+curl -fsSL https://dioxus.dev/install.sh | bash -s -- v0.7.9
 ```
 
 ## Running Tests
@@ -17,10 +20,10 @@ cargo install dioxus-cli
 
 ```bash
 # Run all unit tests
-cargo test
+cargo test --locked --all-features
 
 # Run with output
-cargo test -- --nocapture
+cargo test --locked --all-features -- --nocapture
 
 # Run specific test
 cargo test latlng_new
@@ -32,14 +35,14 @@ The showcase app demonstrates all features and is useful for manual testing.
 
 ```bash
 cd examples/showcase
-dx serve --port 8080
+dx serve --web --port 8080 --locked
 ```
 
 Then open http://localhost:8080 in your browser.
 
 ### E2E Tests (Playwright)
 
-Visual regression and interaction tests. Requires [Bun](https://bun.sh/).
+Browser smoke, API, and interaction tests. Requires [Bun](https://bun.sh/).
 
 ```bash
 # Install Bun (if not installed)
@@ -47,22 +50,17 @@ curl -fsSL https://bun.sh/install | bash
 
 # Install Playwright and browsers
 cd e2e
-bun install
-bunx playwright install
+bun install --frozen-lockfile
+bunx playwright install chromium
 ```
 
 #### Installing System Dependencies for Browsers
 
-Playwright requires system-level dependencies for WebKit/Safari. If you see errors like "Host system is missing dependencies to run browsers", install them:
+Playwright requires system-level dependencies for Chromium. If you see errors like "Host system is missing dependencies to run browsers", install them:
 
 **Debian/Ubuntu:**
 ```bash
-sudo bunx playwright install-deps
-```
-
-Or install specific packages:
-```bash
-sudo apt-get install libwoff2dec1 libenchant-2-2 libmanette-0.2-0
+sudo bunx playwright install-deps chromium
 ```
 
 #### Running E2E Tests
@@ -72,7 +70,7 @@ sudo apt-get install libwoff2dec1 libenchant-2-2 libmanette-0.2-0
 ```bash
 cd e2e
 
-# Run all tests (all browsers)
+# Run all Chromium tests
 bun run test
 
 # Run with visible browser
@@ -81,57 +79,42 @@ bun run test:headed
 # Run with interactive UI
 bun run test:ui
 
-# Update screenshots after intentional changes
-bun run test:update-snapshots
-
 # View test report
 bun run report
 ```
 
-#### Running Tests for Specific Browsers
-
-If you have issues with certain browsers (e.g., WebKit/Safari dependencies), you can run tests for specific browsers only:
+#### Running Specific Tests
 
 ```bash
-# Run only Chromium tests (recommended for quick verification)
+# Run the configured Chromium project
 bunx playwright test --project=chromium
 
-# Run only Firefox tests
-bunx playwright test --project=firefox
-
-# Run only desktop browsers (skip mobile)
-bunx playwright test --project=chromium --project=firefox --project=webkit
-
 # Run specific test file
-bunx playwright test tests/map-render.spec.ts
+bunx playwright test tests/showcase.spec.ts
 ```
 
 #### Troubleshooting E2E Tests
 
 **"Host system is missing dependencies to run browsers"**
-- Install browser dependencies: `sudo npx playwright install-deps`
-- Or skip problematic browsers: `bunx playwright test --project=chromium`
+- Install browser dependencies: `sudo bunx playwright install-deps chromium`
 
 **"Playwright Test did not expect test.describe() to be called here"**
 - You used `bun test` instead of `bun run test`. The correct command is `bun run test`.
 
-**Tests timeout or fail on first run**
-- The showcase app needs time to build. Try running again - the server may not have been ready.
-
-**Visual regression tests fail**
-- If you intentionally changed the UI, update snapshots: `bun run test:update-snapshots`
+**Tests time out while starting the showcase**
+- Run `cd examples/showcase && dx bundle --web --release --debug-symbols=false --out-dir dist --locked` to verify the web build independently.
 
 ## Code Quality
 
 ```bash
 # Format code
-cargo fmt
+cargo fmt --all
 
 # Lint
-cargo clippy
+cargo clippy --locked --all-targets --all-features -- -D warnings
 
 # Check compilation
-cargo check
+cargo check --locked --all-targets --all-features
 ```
 
 ## Project Structure
@@ -169,18 +152,19 @@ branches predate the current branch workflow.
 
 ### Pull Request Checklist
 
-1. Write tests first (TDD encouraged)
-2. Run `cargo test` to verify
+1. Add or update focused tests
+2. Run `cargo test --locked --all-features` to verify
 3. Test manually with the showcase app
-4. Run `cargo fmt` and `cargo clippy`
+4. Run the strict formatting, Clippy, and rustdoc commands above
 5. Submit a pull request to the appropriate branch described above
 
 ## Testing Checklist
 
 Before submitting a PR:
 
-- [ ] `cargo test` passes
-- [ ] `cargo fmt --check` passes
-- [ ] `cargo clippy` has no warnings
+- [ ] `cargo test --locked --all-features` passes
+- [ ] `cargo fmt --all --check` passes
+- [ ] strict Clippy and rustdoc checks pass
+- [ ] `cd examples/showcase && cargo check --target wasm32-unknown-unknown` passes
 - [ ] Showcase app works (manual check)
 - [ ] E2E tests pass: `cd e2e && bun run test` (or at minimum: `bunx playwright test --project=chromium`)

@@ -2,10 +2,11 @@
 #![allow(clippy::float_cmp)]
 
 use dioxus_maplibre::{
-    ControlPosition, EaseToOptions, FeatureIdentifier, FitBoundsOptions, FlyToOptions, FogOptions,
-    GeoJsonSourceOptions, JumpToOptions, LatLng, LayerOptions, MarkerOptions, Padding,
-    PopupOptions, QueryOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions,
-    TerrainOptions, VectorSourceOptions,
+    CanvasSourceOptions, ControlOptions, ControlPosition, EaseToOptions, FeatureIdentifier,
+    FitBoundsOptions, FlyToOptions, FogOptions, GeoJsonSourceOptions, JumpToOptions, LatLng,
+    LayerOptions, MapOptions, MarkerOptions, MissingImageOptions, Padding, PopupOptions,
+    ProjectionOptions, QueryOptions, RasterDemSourceOptions, RasterSourceOptions, SkyOptions,
+    TerrainControlOptions, TerrainOptions, VectorSourceOptions, VideoSourceOptions,
 };
 use serde_json::json;
 
@@ -48,6 +49,7 @@ fn geojson_source_options_with_clustering() {
         cluster_radius: Some(50),
         cluster_max_zoom: Some(14),
         generate_id: Some(true),
+        max_zoom: Some(18),
         ..Default::default()
     };
     let json = serde_json::to_string(&opts).unwrap();
@@ -55,6 +57,7 @@ fn geojson_source_options_with_clustering() {
     assert!(json.contains(r#""clusterRadius":50"#));
     assert!(json.contains(r#""clusterMaxZoom":14"#));
     assert!(json.contains(r#""generateId":true"#));
+    assert!(json.contains(r#""maxzoom":18"#));
 }
 
 #[test]
@@ -67,8 +70,10 @@ fn vector_source_options_serialization() {
     };
     let json = serde_json::to_string(&opts).unwrap();
     assert!(json.contains("example.com"));
-    assert!(json.contains(r#""minZoom":0"#));
-    assert!(json.contains(r#""maxZoom":14"#));
+    assert!(json.contains(r#""minzoom":0"#));
+    assert!(json.contains(r#""maxzoom":14"#));
+    assert!(!json.contains("minZoom"));
+    assert!(!json.contains("maxZoom"));
 }
 
 #[test]
@@ -87,10 +92,12 @@ fn raster_dem_source_options_serialization() {
     let opts = RasterDemSourceOptions {
         url: Some("https://example.com/dem.json".to_string()),
         encoding: Some("terrarium".to_string()),
+        max_zoom: Some(12),
         ..Default::default()
     };
     let json = serde_json::to_string(&opts).unwrap();
     assert!(json.contains("terrarium"));
+    assert!(json.contains(r#""maxzoom":12"#));
 }
 
 #[test]
@@ -138,6 +145,61 @@ fn layer_options_background() {
 }
 
 #[test]
+fn all_maplibre_layer_types_have_builders() {
+    assert_eq!(LayerOptions::hillshade("h", "dem").layer_type, "hillshade");
+    assert_eq!(
+        LayerOptions::color_relief("r", "dem").layer_type,
+        "color-relief"
+    );
+}
+
+#[test]
+fn map_and_projection_passthrough_options() {
+    let map = MapOptions(json!({"maxPitch": 85, "rollEnabled": true}));
+    let serialized = serde_json::to_value(map).unwrap();
+    assert_eq!(serialized["maxPitch"], 85);
+    assert_eq!(ProjectionOptions::globe().0["type"], "globe");
+    assert_eq!(ProjectionOptions::mercator().0["type"], "mercator");
+    assert_eq!(
+        ProjectionOptions::vertical_perspective().0["type"],
+        "vertical-perspective"
+    );
+}
+
+#[test]
+fn media_source_options_serialize() {
+    let coordinates = [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]];
+    let video = VideoSourceOptions {
+        urls: vec!["demo.webm".into()],
+        coordinates,
+    };
+    let canvas = CanvasSourceOptions {
+        canvas: "demo-canvas".into(),
+        coordinates,
+        animate: Some(false),
+    };
+    assert_eq!(serde_json::to_value(video).unwrap()["urls"][0], "demo.webm");
+    assert_eq!(
+        serde_json::to_value(canvas).unwrap()["canvas"],
+        "demo-canvas"
+    );
+}
+
+#[test]
+fn control_and_missing_image_options_serialize() {
+    assert_eq!(
+        serde_json::to_string(&ControlOptions::default()).unwrap(),
+        "{}"
+    );
+    let terrain = TerrainControlOptions {
+        source: "dem".into(),
+        exaggeration: Some(1.5),
+    };
+    assert_eq!(serde_json::to_value(terrain).unwrap()["source"], "dem");
+    assert_eq!(MissingImageOptions::default().cell_size, 8);
+}
+
+#[test]
 fn layer_options_with_source_layer() {
     let layer = LayerOptions::fill("countries", "openmaptiles").source_layer("boundary");
 
@@ -152,9 +214,10 @@ fn layer_options_serialization_camel_case() {
         .max_zoom(18.0);
 
     let json = serde_json::to_string(&layer).unwrap();
-    assert!(json.contains(r#""sourceLayer":"points""#));
-    assert!(json.contains(r#""minZoom":3"#));
-    assert!(json.contains(r#""maxZoom":18"#));
+    assert!(json.contains(r#""source-layer":"points""#));
+    assert!(json.contains(r#""minzoom":3"#));
+    assert!(json.contains(r#""maxzoom":18"#));
+    assert!(!json.contains("sourceLayer"));
     assert!(json.contains(r#""type":"circle""#));
 }
 
@@ -284,7 +347,7 @@ fn fog_options_passthrough() {
 fn feature_identifier_serialization() {
     let feat = FeatureIdentifier {
         source: "my-source".to_string(),
-        id: 42,
+        id: 42.into(),
         source_layer: Some("points".to_string()),
     };
     let json = serde_json::to_string(&feat).unwrap();
@@ -297,11 +360,17 @@ fn feature_identifier_serialization() {
 fn feature_identifier_without_source_layer() {
     let feat = FeatureIdentifier {
         source: "geojson-src".to_string(),
-        id: 7,
+        id: 7.into(),
         source_layer: None,
     };
     let json = serde_json::to_string(&feat).unwrap();
     assert!(!json.contains("sourceLayer"));
+}
+
+#[test]
+fn feature_identifier_supports_string_ids() {
+    let feature = FeatureIdentifier::new("vehicles", "tram-42");
+    assert_eq!(serde_json::to_value(feature).unwrap()["id"], "tram-42");
 }
 
 #[test]
@@ -316,6 +385,7 @@ fn query_options_with_layers_and_filter() {
     let opts = QueryOptions {
         layers: Some(vec!["circles".to_string(), "lines".to_string()]),
         filter: Some(json!(["==", ["get", "active"], true])),
+        ..Default::default()
     };
     let json = serde_json::to_string(&opts).unwrap();
     assert!(json.contains("circles"));

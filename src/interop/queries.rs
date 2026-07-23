@@ -25,7 +25,7 @@ pub fn query_rendered_features_js(map_id: &str, options_json: &str) -> String {
             }}
 
             return features.map(f => ({{
-                id: Number.isFinite(f.id) ? Math.trunc(f.id) : null,
+                id: typeof f.id === 'string' || Number.isFinite(f.id) ? f.id : null,
                 geometry: f.geometry,
                 properties: f.properties || {{}},
                 source: f.source,
@@ -59,7 +59,7 @@ pub fn query_rendered_features_at_js(map_id: &str, x: f64, y: f64, options_json:
             }}
 
             return features.map(f => ({{
-                id: Number.isFinite(f.id) ? Math.trunc(f.id) : null,
+                id: typeof f.id === 'string' || Number.isFinite(f.id) ? f.id : null,
                 geometry: f.geometry,
                 properties: f.properties || {{}},
                 source: f.source,
@@ -85,7 +85,7 @@ pub fn query_source_features_js(map_id: &str, source_id: &str, options_json: &st
             const features = map.querySourceFeatures({source_id_lit}, opts);
 
             return features.map(f => ({{
-                id: Number.isFinite(f.id) ? Math.trunc(f.id) : null,
+                id: typeof f.id === 'string' || Number.isFinite(f.id) ? f.id : null,
                 geometry: f.geometry,
                 properties: f.properties || {{}},
                 source: {source_id_lit},

@@ -20,32 +20,31 @@ pub fn add_marker_js(
 
             const opts = {options_json};
 
-            let markerOpts = {{}};
+            const {{ emoji, popupHtml, elementId, ...markerOpts }} = opts;
             let el = null;
 
-            if (opts.emoji) {{
+            if (emoji) {{
                 el = document.createElement('div');
                 el.className = 'maplibre-marker-emoji';
-                el.innerHTML = opts.emoji;
+                el.textContent = emoji;
                 el.style.fontSize = '28px';
                 el.style.cursor = 'pointer';
                 el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))';
                 markerOpts.element = el;
-            }} else {{
+            }} else if (elementId) {{
+                el = document.getElementById(elementId);
+                if (el) markerOpts.element = el;
+            }} else if (!markerOpts.color) {{
                 markerOpts.color = opts.color || '#3b82f6';
             }}
-
-            if (opts.draggable) markerOpts.draggable = true;
-            if (opts.rotation != null) markerOpts.rotation = opts.rotation;
-            if (opts.scale != null) markerOpts.scale = opts.scale;
 
             const marker = new maplibregl.Marker(markerOpts)
                 .setLngLat([{lng}, {lat}])
                 .addTo(map);
 
-            if (opts.popupHtml) {{
+            if (popupHtml) {{
                 const popup = new maplibregl.Popup({{ offset: 25 }})
-                    .setHTML(opts.popupHtml);
+                    .setHTML(popupHtml);
                 marker.setPopup(popup);
             }}
 

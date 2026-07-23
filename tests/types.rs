@@ -1,7 +1,7 @@
 //! Unit tests for geographic types
 #![allow(clippy::float_cmp)]
 
-use dioxus_maplibre::{Bounds, LatLng, MapPosition, Point, QueryFeature};
+use dioxus_maplibre::{Bounds, FeatureId, LatLng, MapPosition, Point, QueryFeature};
 
 #[test]
 fn latlng_new() {
@@ -156,7 +156,7 @@ fn query_feature_deserialize() {
         "sourceLayer": "places"
     }"#;
     let feature: QueryFeature = serde_json::from_str(json).unwrap();
-    assert_eq!(feature.id, Some(42));
+    assert_eq!(feature.id, Some(FeatureId::Number(42)));
     assert_eq!(feature.source, "cities");
     assert_eq!(feature.source_layer.as_deref(), Some("places"));
 }
@@ -172,4 +172,16 @@ fn query_feature_without_optional_fields() {
     assert_eq!(feature.id, None);
     assert_eq!(feature.source_layer, None);
     assert_eq!(feature.source, "my-source");
+}
+
+#[test]
+fn query_feature_supports_string_ids() {
+    let json = r#"{
+        "id": "tram-42",
+        "geometry": {"type": "Point", "coordinates": [24.94, 60.17]},
+        "properties": {},
+        "source": "vehicles"
+    }"#;
+    let feature: QueryFeature = serde_json::from_str(json).unwrap();
+    assert_eq!(feature.id, Some(FeatureId::String("tram-42".into())));
 }

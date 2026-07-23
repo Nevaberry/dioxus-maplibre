@@ -22,7 +22,7 @@ pub struct LayerOptions {
     /// Unique layer ID
     pub id: String,
 
-    /// Layer type: circle, fill, line, symbol, fill-extrusion, heatmap, raster, background
+    /// Any MapLibre style layer type, including hillshade and color-relief.
     #[serde(rename = "type")]
     pub layer_type: String,
 
@@ -31,7 +31,7 @@ pub struct LayerOptions {
     pub source: Option<String>,
 
     /// Source layer (for vector tile sources)
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "source-layer", skip_serializing_if = "Option::is_none")]
     pub source_layer: Option<String>,
 
     /// Paint properties (MapLibre style spec)
@@ -47,11 +47,11 @@ pub struct LayerOptions {
     pub filter: Option<serde_json::Value>,
 
     /// Minimum zoom level for this layer
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "minzoom", skip_serializing_if = "Option::is_none")]
     pub min_zoom: Option<f64>,
 
     /// Maximum zoom level for this layer
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "maxzoom", skip_serializing_if = "Option::is_none")]
     pub max_zoom: Option<f64>,
 }
 
@@ -108,6 +108,16 @@ impl LayerOptions {
     /// Create a raster layer
     pub fn raster(id: impl Into<String>, source: impl Into<String>) -> Self {
         Self::new(id, "raster", source)
+    }
+
+    /// Create a hillshade layer backed by a raster DEM source.
+    pub fn hillshade(id: impl Into<String>, source: impl Into<String>) -> Self {
+        Self::new(id, "hillshade", source)
+    }
+
+    /// Create a color-relief layer backed by a raster DEM source.
+    pub fn color_relief(id: impl Into<String>, source: impl Into<String>) -> Self {
+        Self::new(id, "color-relief", source)
     }
 
     /// Create a background layer (no source needed)

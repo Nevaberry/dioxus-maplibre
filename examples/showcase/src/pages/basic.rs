@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_maplibre::{Map, MapHandle, MapClickEvent, MapMoveEvent, LatLng};
+use dioxus_maplibre::{LatLng, Map, MapClickEvent, MapHandle, MapMoveEvent};
 
 #[component]
 pub fn Basic() -> Element {
