@@ -5,7 +5,7 @@ name = "dioxus-maplibre showcase"
 title = "dioxus-maplibre showcase"
 
 [web.resource]
-style = ["https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"]
-script = ["https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"]
+style = ["https://unpkg.com/maplibre-gl@6.0.0/dist/maplibre-gl.css"]
+script = ["/maplibre-loader.js"]
 
 [web.resource.dev]

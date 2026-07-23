@@ -14,8 +14,11 @@ cargo add dioxus-maplibre
 Include MapLibre assets in your HTML:
 
 ```html
-<link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
-<script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@6.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+<script type="module">
+  import * as maplibregl from "https://unpkg.com/maplibre-gl@6.0.0/dist/maplibre-gl.mjs";
+  globalThis.maplibregl = maplibregl;
+</script>
 ```
 
 ## Usage

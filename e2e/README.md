@@ -4,16 +4,16 @@ Behavioral Playwright tests for the dioxus-maplibre showcase app.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+ (or [Bun](https://bun.sh/))
-- [Dioxus CLI](https://dioxuslabs.com/) (`cargo install dioxus-cli`)
+- [Bun](https://bun.sh/) 1.3.14 (recommended), or a Playwright-supported Node.js release (22, 24, or 26)
+- [Dioxus CLI](https://dioxuslabs.com/) 0.7.9
 - Chromium browser (installed automatically by Playwright)
 
 ## Setup
 
 ```bash
 cd e2e
-npm install
-npx playwright install chromium
+bun install --frozen-lockfile
+bunx playwright install chromium
 ```
 
 ## Running Tests
@@ -21,10 +21,10 @@ npx playwright install chromium
 ### Automatic (Playwright starts the dev server)
 
 ```bash
-npx playwright test
+bun run test
 ```
 
-Playwright will automatically run `dx serve --port 8080` in `../examples/showcase/` and wait up to 2 minutes for the WASM build to complete. If the server is already running, it reuses it.
+Playwright will automatically run `dx serve --web --port 8080 --open false --locked` in `../examples/showcase/` and wait up to 2 minutes for the WASM build to complete. If the server is already running, it reuses it.
 
 ### Manual (start server yourself)
 
@@ -32,31 +32,31 @@ In one terminal:
 
 ```bash
 cd ../examples/showcase
-dx serve --port 8080
+dx serve --web --port 8080 --open false --locked
 ```
 
 In another terminal:
 
 ```bash
-npx playwright test
+bun run test
 ```
 
 ### Headed mode (see the browser)
 
 ```bash
-npx playwright test --headed
+bun run test:headed
 ```
 
 ### Run a specific test file
 
 ```bash
-npx playwright test tests/basic.spec.ts
+bun run test tests/basic.spec.ts
 ```
 
 ### Debug mode (step through tests)
 
 ```bash
-npx playwright test --debug
+bunx playwright test --debug
 ```
 
 ## Test Files
@@ -96,4 +96,4 @@ See `playwright.config.ts`:
 
 **`dx` command not found**: Install with `cargo install dioxus-cli`.
 
-**Chromium not found**: Run `npx playwright install chromium`.
+**Chromium not found**: Run `bunx playwright install chromium`.
