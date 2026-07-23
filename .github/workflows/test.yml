@@ -46,7 +46,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install Dioxus CLI
-        run: cargo install dioxus-cli --locked
+        run: cargo install dioxus-cli --version 0.7.3 --locked
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
@@ -58,7 +58,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: showcase-dist
-          path: examples/showcase/dist/
+          path: examples/showcase/target/dx/showcase/release/web/public/
+          if-no-files-found: error
 
   # E2E tests with Playwright
   e2e-tests:
