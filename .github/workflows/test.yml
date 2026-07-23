@@ -46,7 +46,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install Dioxus CLI
-        run: cargo install dioxus-cli --version 0.7.3 --locked
+        run: curl -fsSL https://dioxus.dev/install.sh | sh -s -- v0.7.3
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
