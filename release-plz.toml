@@ -2,16 +2,24 @@
 # https://release-plz.ieni.dev/docs/config
 
 [workspace]
-# Create GitHub releases when publishing
+# Process this crate, but publish only after a release-plz PR is merged into
+# production. A normal main -> production promotion prepares the release PR;
+# merging that generated PR publishes the crate and creates its tag/release.
 release = true
+release_always = false
+publish = true
 
-# Update changelog
-changelog_update = true
-
-# Commit message for version bumps
+# Create the matching v<version> tag and GitHub release.
+git_tag_enable = true
+git_tag_name = "v{{ version }}"
+git_release_enable = true
 git_release_name = "v{{ version }}"
 
-# PR settings
+# Update the changelog in the release PR.
+changelog_update = true
+
+# Release PR settings.
+pr_branch_prefix = "release-plz-"
 pr_labels = ["release"]
 
 [changelog]

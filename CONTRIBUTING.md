@@ -145,11 +145,34 @@ e2e/                    # Playwright E2E tests (optional)
 
 ## Making Changes
 
+### Branch Workflow
+
+The repository has three long-lived branches:
+
+- `development` is the integration branch for active development. Create
+  short-lived feature and fix branches from it and open pull requests back to
+  `development`.
+- `main` is the default branch and the source for preview/staging deployments.
+  Promote a tested `development` state with a `development` -> `main` pull
+  request.
+- `production` is the source for production deployments and crate releases.
+  Promote an approved staging state with a `main` -> `production` pull request.
+  A push to
+  `production` runs release-plz, which prepares a release pull request with the
+  next version and changelog. Merging that generated pull request creates the
+  `v<version>` tag and GitHub release and publishes the crate to crates.io.
+
+Do not develop directly on `main` or `production`. Timestamped
+`release-plz-*` branches are temporary automation branches, not development
+branches.
+
+### Pull Request Checklist
+
 1. Write tests first (TDD encouraged)
 2. Run `cargo test` to verify
 3. Test manually with the showcase app
 4. Run `cargo fmt` and `cargo clippy`
-5. Submit PR
+5. Submit a pull request to the appropriate branch described above
 
 ## Testing Checklist
 
