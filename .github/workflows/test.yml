@@ -86,7 +86,7 @@ jobs:
       - name: Serve and test
         run: |
           cd examples/showcase/dist
-          bunx serve -l 8080 &
+          bunx serve --single -l 8080 &
           sleep 3
           cd ../../../e2e
           bun run test --project=chromium
