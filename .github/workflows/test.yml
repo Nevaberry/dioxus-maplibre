@@ -52,13 +52,13 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build showcase
-        run: cd examples/showcase && dx build --release
+        run: cd examples/showcase && dx bundle --web --release --debug-symbols=false --out-dir dist
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: showcase-dist
-          path: examples/showcase/target/dx/showcase/release/web/public/
+          path: examples/showcase/dist/public/
           if-no-files-found: error
 
   # E2E tests with Playwright
