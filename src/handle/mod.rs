@@ -30,7 +30,7 @@ pub struct MapHandle {
 
 impl MapHandle {
     /// Create a new `MapHandle` (called internally by the `Map` component).
-    #[allow(dead_code)] // Used only on wasm32 target
+    #[allow(dead_code)] // Used on the Web/WASM target.
     pub(crate) fn new(map_id: String) -> Self {
         Self { map_id }
     }
@@ -44,7 +44,7 @@ impl MapHandle {
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn fire_and_forget(&self, js_fn: impl FnOnce() -> String) {
         let js = js_fn();
-        dioxus::prelude::spawn(async move {
+        dioxus::dioxus_core::spawn_forever(async move {
             let _ = document::eval(&js).await;
         });
     }
@@ -52,14 +52,14 @@ impl MapHandle {
     #[allow(clippy::unused_self)]
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn fire_and_forget(&self, _js_fn: impl FnOnce() -> String) {
-        // No-op on non-wasm targets.
+        // No-op on targets without a browser or WebView runtime.
     }
 
     /// Execute raw JS without wrapping (for escape hatch).
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn eval_raw(&self, js: &str) {
         let js = js.to_string();
-        dioxus::prelude::spawn(async move {
+        dioxus::dioxus_core::spawn_forever(async move {
             let _ = document::eval(&js).await;
         });
     }

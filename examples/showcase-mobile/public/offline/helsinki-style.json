@@ -1,0 +1,68 @@
+{
+  "version": 8,
+  "name": "Helsinki offline",
+  "center": [24.9384, 60.1699],
+  "zoom": 12,
+  "sources": {
+    "local-base": {
+      "type": "geojson",
+      "data": "/offline/helsinki-base.geojson"
+    }
+  },
+  "layers": [
+    {
+      "id": "night",
+      "type": "background",
+      "paint": { "background-color": "#071822" }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "local-base",
+      "filter": ["==", ["get", "kind"], "water"],
+      "paint": { "fill-color": "#0a3447", "fill-opacity": 0.95 }
+    },
+    {
+      "id": "parks",
+      "type": "fill",
+      "source": "local-base",
+      "filter": ["==", ["get", "kind"], "park"],
+      "paint": { "fill-color": "#123d39", "fill-opacity": 0.78 }
+    },
+    {
+      "id": "blocks",
+      "type": "fill",
+      "source": "local-base",
+      "filter": ["==", ["get", "kind"], "block"],
+      "paint": { "fill-color": "#173643", "fill-outline-color": "#214653" }
+    },
+    {
+      "id": "roads-secondary",
+      "type": "line",
+      "source": "local-base",
+      "filter": ["==", ["get", "kind"], "road-secondary"],
+      "paint": { "line-color": "#31505a", "line-width": 2 }
+    },
+    {
+      "id": "roads-primary-casing",
+      "type": "line",
+      "source": "local-base",
+      "filter": ["==", ["get", "kind"], "road-primary"],
+      "paint": { "line-color": "#0a1d28", "line-width": 7 }
+    },
+    {
+      "id": "roads-primary",
+      "type": "line",
+      "source": "local-base",
+      "filter": ["==", ["get", "kind"], "road-primary"],
+      "paint": { "line-color": "#506b72", "line-width": 4 }
+    },
+    {
+      "id": "shoreline",
+      "type": "line",
+      "source": "local-base",
+      "filter": ["==", ["get", "kind"], "shore"],
+      "paint": { "line-color": "#2f7180", "line-width": 1.5 }
+    }
+  ]
+}

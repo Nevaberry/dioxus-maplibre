@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "kind": "water" }, "geometry": { "type": "Polygon", "coordinates": [[[24.89,60.13],[25.02,60.13],[25.02,60.164],[24.985,60.167],[24.965,60.162],[24.945,60.166],[24.92,60.159],[24.89,60.163],[24.89,60.13]]] } },
+    { "type": "Feature", "properties": { "kind": "park" }, "geometry": { "type": "Polygon", "coordinates": [[[24.924,60.176],[24.940,60.176],[24.945,60.188],[24.932,60.194],[24.921,60.186],[24.924,60.176]]] } },
+    { "type": "Feature", "properties": { "kind": "park" }, "geometry": { "type": "Polygon", "coordinates": [[[24.946,60.153],[24.970,60.153],[24.971,60.164],[24.955,60.166],[24.946,60.160],[24.946,60.153]]] } },
+    { "type": "Feature", "properties": { "kind": "block" }, "geometry": { "type": "Polygon", "coordinates": [[[24.920,60.163],[24.938,60.163],[24.938,60.170],[24.920,60.170],[24.920,60.163]]] } },
+    { "type": "Feature", "properties": { "kind": "block" }, "geometry": { "type": "Polygon", "coordinates": [[[24.941,60.165],[24.952,60.165],[24.952,60.172],[24.941,60.172],[24.941,60.165]]] } },
+    { "type": "Feature", "properties": { "kind": "block" }, "geometry": { "type": "Polygon", "coordinates": [[[24.954,60.168],[24.969,60.168],[24.969,60.176],[24.954,60.176],[24.954,60.168]]] } },
+    { "type": "Feature", "properties": { "kind": "block" }, "geometry": { "type": "Polygon", "coordinates": [[[24.936,60.176],[24.950,60.176],[24.950,60.184],[24.936,60.184],[24.936,60.176]]] } },
+    { "type": "Feature", "properties": { "kind": "road-primary" }, "geometry": { "type": "LineString", "coordinates": [[24.900,60.168],[24.922,60.170],[24.941,60.172],[24.963,60.174],[24.989,60.181]] } },
+    { "type": "Feature", "properties": { "kind": "road-primary" }, "geometry": { "type": "LineString", "coordinates": [[24.937,60.149],[24.939,60.160],[24.941,60.172],[24.944,60.188],[24.946,60.201]] } },
+    { "type": "Feature", "properties": { "kind": "road-secondary" }, "geometry": { "type": "LineString", "coordinates": [[24.910,60.159],[24.930,60.164],[24.952,60.168],[24.975,60.170]] } },
+    { "type": "Feature", "properties": { "kind": "road-secondary" }, "geometry": { "type": "LineString", "coordinates": [[24.922,60.185],[24.940,60.179],[24.960,60.177],[24.982,60.179]] } },
+    { "type": "Feature", "properties": { "kind": "road-secondary" }, "geometry": { "type": "LineString", "coordinates": [[24.927,60.151],[24.930,60.165],[24.931,60.179],[24.928,60.195]] } },
+    { "type": "Feature", "properties": { "kind": "road-secondary" }, "geometry": { "type": "LineString", "coordinates": [[24.956,60.151],[24.954,60.165],[24.955,60.180],[24.963,60.194]] } },
+    { "type": "Feature", "properties": { "kind": "shore" }, "geometry": { "type": "LineString", "coordinates": [[24.89,60.163],[24.92,60.159],[24.945,60.166],[24.965,60.162],[24.985,60.167],[25.02,60.164]] } }
+  ]
+}

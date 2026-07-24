@@ -1,0 +1,16 @@
+{
+  "version": 8,
+  "name": "Tokyo offline",
+  "center": [139.7671, 35.6812],
+  "zoom": 11.7,
+  "sources": {
+    "tokyo": { "type": "geojson", "data": "/offline/tokyo-base.geojson" }
+  },
+  "layers": [
+    { "id": "tokyo-bg", "type": "background", "paint": { "background-color": "#061720" } },
+    { "id": "tokyo-water", "type": "fill", "source": "tokyo", "filter": ["==", ["get", "kind"], "water"], "paint": { "fill-color": "#0b3849" } },
+    { "id": "tokyo-blocks", "type": "fill", "source": "tokyo", "filter": ["==", ["get", "kind"], "block"], "paint": { "fill-color": "#153746", "fill-outline-color": "#204a56" } },
+    { "id": "tokyo-rail", "type": "line", "source": "tokyo", "filter": ["==", ["get", "kind"], "rail"], "paint": { "line-color": "#b09656", "line-width": 2, "line-dasharray": [2, 1] } },
+    { "id": "tokyo-road", "type": "line", "source": "tokyo", "filter": ["==", ["get", "kind"], "road"], "paint": { "line-color": "#42616a", "line-width": 3 } }
+  ]
+}

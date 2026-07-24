@@ -1,6 +1,6 @@
 # Codebase Map
 
-> Updated: 2026-07-23
+> Updated: 2026-07-24
 
 ## System Overview
 
@@ -109,6 +109,11 @@ src/
 - `tests/events.rs`: event model and `MapEvent` envelope.
 - `tests/options.rs`: option serialization and builders.
 - `examples/showcase-web`: end-to-end manual behavior validation for the web showcase.
+- `examples/showcase-mobile`: installable phone UI with local MapLibre assets,
+  touch interaction, offline styles/data/elevation, Cache Storage packs, and a
+  service-worker app shell.
 - `e2e/tests/showcase.spec.ts`: every showcase route plus targeted MapLibre 6 browser checks.
+- `e2e/mobile-tests/mobile-showcase.spec.ts`: phone navigation, runtime layers,
+  mouse/touch press phases, pack lifecycle, and a network-free reload.
 
 See [FEATURE_COVERAGE.md](FEATURE_COVERAGE.md) for the source/layer/control and route matrices.

@@ -11,11 +11,13 @@
   },
   "scripts": {
     "test": "playwright test",
+    "test:mobile": "playwright test --config=playwright.mobile.config.ts",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:update-snapshots": "playwright test --update-snapshots",
     "typecheck": "tsc --noEmit",
     "report": "playwright show-report",
-    "serve:showcase": "serve --single --listen tcp://127.0.0.1:8080 --no-port-switching --no-request-logging --no-clipboard ../examples/showcase-web/dist/public"
+    "serve:showcase": "serve --single --listen tcp://127.0.0.1:8080 --no-port-switching --no-request-logging --no-clipboard ../examples/showcase-web/dist/public",
+    "serve:mobile": "serve --single --listen tcp://127.0.0.1:8081 --no-port-switching --no-request-logging --no-clipboard ../examples/showcase-mobile/dist/public"
   }
 }

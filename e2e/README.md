@@ -1,6 +1,6 @@
 # E2E Tests
 
-Behavioral Playwright tests for the dioxus-maplibre web showcase app.
+Behavioral Playwright tests for the desktop and mobile dioxus-maplibre showcase apps.
 
 ## Prerequisites
 
@@ -25,6 +25,13 @@ bun run test
 ```
 
 Playwright will automatically run `dx serve --web --port 8080 --open false --locked` in `../examples/showcase-web/` and wait up to 2 minutes for the WASM build to complete. If the server is already running, it reuses it.
+
+The phone/touch/offline suite builds the production PWA and serves it on port
+8081 (a production service worker cannot be tested reliably through hot reload):
+
+```bash
+bun run test:mobile
+```
 
 ### Manual (start server yourself)
 
@@ -70,6 +77,7 @@ bunx playwright test --debug
 | `navigation.spec.ts` | flyTo, easeTo, jumpTo, fitBounds, zoom controls |
 | `interaction.spec.ts` | Layer click/hover, feature state |
 | `events.spec.ts` | Ready event, click event with coordinates |
+| `mobile-tests/mobile-showcase.spec.ts` | Phone navigation, layer/camera controls, mouse + touch press phases, pack downloads, offline reload |
 
 ## Test Approach
 
@@ -89,6 +97,9 @@ See `playwright.config.ts`:
 - **Timeout**: 60s per test, 120s for dev server startup
 - **Retries**: 1 (flaky tolerance for WASM load times)
 - **Base URL**: `http://localhost:8080`
+
+`playwright.mobile.config.ts` uses a Pixel 7 touch profile and
+`http://localhost:8081`.
 
 ## Troubleshooting
 

@@ -1,0 +1,12 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "kind": "rock" }, "geometry": { "type": "Polygon", "coordinates": [[[7.54,45.91],[7.78,45.91],[7.80,46.05],[7.68,46.08],[7.55,46.03],[7.54,45.91]]] } },
+    { "type": "Feature", "properties": { "kind": "snow" }, "geometry": { "type": "Polygon", "coordinates": [[[7.61,45.95],[7.66,46.01],[7.70,45.97],[7.68,45.94],[7.61,45.95]]] } },
+    { "type": "Feature", "properties": { "kind": "contour" }, "geometry": { "type": "LineString", "coordinates": [[7.56,45.94],[7.60,45.96],[7.65,45.97],[7.70,45.96],[7.75,45.93]] } },
+    { "type": "Feature", "properties": { "kind": "contour" }, "geometry": { "type": "LineString", "coordinates": [[7.57,45.96],[7.61,45.98],[7.65,45.99],[7.70,45.98],[7.74,45.95]] } },
+    { "type": "Feature", "properties": { "kind": "contour" }, "geometry": { "type": "LineString", "coordinates": [[7.58,45.98],[7.62,46.00],[7.66,46.01],[7.69,46.00],[7.73,45.97]] } },
+    { "type": "Feature", "properties": { "kind": "contour" }, "geometry": { "type": "LineString", "coordinates": [[7.59,46.00],[7.63,46.02],[7.67,46.03],[7.71,46.00]] } },
+    { "type": "Feature", "properties": { "kind": "route" }, "geometry": { "type": "LineString", "coordinates": [[7.62,45.94],[7.64,45.96],[7.65,45.98],[7.6586,45.9763],[7.67,46.01]] } }
+  ]
+}

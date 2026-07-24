@@ -340,8 +340,19 @@ pub fn init_map_js(
                     }});
                 }}
 
-                map.on('load', function() {{
+                // A style is safe to extend before every initial tile finishes.
+                // Emit ready once at style.load so app setup is not gated on a
+                // slow or unavailable tile request; load remains a fallback.
+                let readySent = false;
+                const emitReady = function() {{
+                    if (readySent) return;
+                    readySent = true;
                     dioxus.send(JSON.stringify({{ type: 'ready' }}));
+                }};
+                map.once('style.load', emitReady);
+
+                map.on('load', function() {{
+                    emitReady();
                     emitMoveEvent('move_load');
                 }});
 
@@ -412,6 +423,12 @@ pub fn destroy_map_js(map_id: &str) -> String {
                     if (handlers && handlers.mouseup) {{
                         map.off('mouseup', layerId, handlers.mouseup);
                     }}
+                    if (handlers && handlers.touchstart) {{
+                        map.off('touchstart', layerId, handlers.touchstart);
+                    }}
+                    if (handlers && handlers.touchend) {{
+                        map.off('touchend', layerId, handlers.touchend);
+                    }}
                 }}
                 delete window.__dioxus_maplibre_layer_handlers[{map_id_lit}];
             }}
@@ -457,4 +474,33 @@ pub fn destroy_map_js(map_id: &str) -> String {
         }})();
         "#
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::init_map_js;
+
+    #[test]
+    fn ready_fires_once_when_the_style_can_be_extended() {
+        let js = init_map_js(
+            "container",
+            "map",
+            "/style.json",
+            24.94,
+            60.17,
+            12.0,
+            0.0,
+            0.0,
+            None,
+            None,
+            None,
+            None,
+            "{}",
+            80,
+        );
+
+        assert!(js.contains("map.once('style.load', emitReady)"));
+        assert!(js.contains("if (readySent) return"));
+        assert!(js.contains("map.on('load'"));
+    }
 }

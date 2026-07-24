@@ -59,6 +59,12 @@ pub fn remove_layer_js(map_id: &str, layer_id: &str) -> String {
                     if (handlers.mouseup) {{
                         map.off('mouseup', {layer_id_lit}, handlers.mouseup);
                     }}
+                    if (handlers.touchstart) {{
+                        map.off('touchstart', {layer_id_lit}, handlers.touchstart);
+                    }}
+                    if (handlers.touchend) {{
+                        map.off('touchend', {layer_id_lit}, handlers.touchend);
+                    }}
                     delete mapHandlers[{layer_id_lit}];
                 }}
 
@@ -234,7 +240,7 @@ pub fn unregister_layer_click_js(map_id: &str, layer_id: &str) -> String {
             }}
             map.off('click', {layer_id_lit}, handlers.click);
             delete handlers.click;
-            if (!handlers.mouseenter && !handlers.mouseleave && !handlers.mousedown && !handlers.mouseup) {{
+            if (!handlers.mouseenter && !handlers.mouseleave && !handlers.mousedown && !handlers.mouseup && !handlers.touchstart && !handlers.touchend) {{
                 delete mapHandlers[{layer_id_lit}];
             }}
         }})();
@@ -331,7 +337,7 @@ pub fn unregister_layer_hover_js(map_id: &str, layer_id: &str) -> String {
                 map.off('mouseleave', {layer_id_lit}, handlers.mouseleave);
                 delete handlers.mouseleave;
             }}
-            if (!handlers.click && !handlers.mouseenter && !handlers.mouseleave && !handlers.mousedown && !handlers.mouseup) {{
+            if (!handlers.click && !handlers.mouseenter && !handlers.mouseleave && !handlers.mousedown && !handlers.mouseup && !handlers.touchstart && !handlers.touchend) {{
                 delete mapHandlers[{layer_id_lit}];
             }}
         }})();
@@ -339,7 +345,7 @@ pub fn unregister_layer_hover_js(map_id: &str, layer_id: &str) -> String {
     )
 }
 
-/// Generate JS to register mouse down/up handlers on a layer.
+/// Generate JS to register primary pointer press/release handlers on a layer.
 pub fn register_layer_press_js(map_id: &str, layer_id: &str) -> String {
     let find = find_map_js(map_id);
     let map_id_lit = js_single_quoted(map_id);
@@ -361,11 +367,22 @@ pub fn register_layer_press_js(map_id: &str, layer_id: &str) -> String {
             }}
             const handlers = mapHandlers[{layer_id_lit}];
 
+            const pointerCoordinates = function(e) {{
+                const original = e.originalEvent || {{}};
+                const touch = (original.touches && original.touches[0])
+                    || (original.changedTouches && original.changedTouches[0]);
+                return {{
+                    x: touch ? touch.clientX : (original.clientX || 0),
+                    y: touch ? touch.clientY : (original.clientY || 0)
+                }};
+            }};
+
             const sendPress = function(e, pressed) {{
                 if (!e.features || e.features.length === 0) {{
                     return;
                 }}
                 const feature = e.features[0];
+                const cursor = pointerCoordinates(e);
                 if (window.__dioxus_maplibre_sendEvent) {{
                     window.__dioxus_maplibre_sendEvent(JSON.stringify({{
                         type: 'layer_press',
@@ -373,8 +390,8 @@ pub fn register_layer_press_js(map_id: &str, layer_id: &str) -> String {
                         feature_id: feature.id !== undefined ? feature.id : null,
                         properties: feature.properties || {{}},
                         latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
-                        cursor_x: e.originalEvent.clientX,
-                        cursor_y: e.originalEvent.clientY,
+                        cursor_x: cursor.x,
+                        cursor_y: cursor.y,
                         pressed
                     }}));
                 }}
@@ -382,6 +399,9 @@ pub fn register_layer_press_js(map_id: &str, layer_id: &str) -> String {
 
             if (!handlers.mousedown) {{
                 const onMouseDown = function(e) {{
+                    if (handlers.lastTouchAt && Date.now() - handlers.lastTouchAt < 800) {{
+                        return;
+                    }}
                     sendPress(e, true);
                 }};
                 handlers.mousedown = onMouseDown;
@@ -390,17 +410,38 @@ pub fn register_layer_press_js(map_id: &str, layer_id: &str) -> String {
 
             if (!handlers.mouseup) {{
                 const onMouseUp = function(e) {{
+                    if (handlers.lastTouchAt && Date.now() - handlers.lastTouchAt < 800) {{
+                        return;
+                    }}
                     sendPress(e, false);
                 }};
                 handlers.mouseup = onMouseUp;
                 map.on('mouseup', {layer_id_lit}, onMouseUp);
+            }}
+
+            if (!handlers.touchstart) {{
+                const onTouchStart = function(e) {{
+                    handlers.lastTouchAt = Date.now();
+                    sendPress(e, true);
+                }};
+                handlers.touchstart = onTouchStart;
+                map.on('touchstart', {layer_id_lit}, onTouchStart);
+            }}
+
+            if (!handlers.touchend) {{
+                const onTouchEnd = function(e) {{
+                    handlers.lastTouchAt = Date.now();
+                    sendPress(e, false);
+                }};
+                handlers.touchend = onTouchEnd;
+                map.on('touchend', {layer_id_lit}, onTouchEnd);
             }}
         }})();
         "#
     )
 }
 
-/// Generate JS to unregister mouse down/up handlers on a layer.
+/// Generate JS to unregister primary pointer press/release handlers on a layer.
 pub fn unregister_layer_press_js(map_id: &str, layer_id: &str) -> String {
     let find = find_map_js(map_id);
     let map_id_lit = js_single_quoted(map_id);
@@ -422,6 +463,15 @@ pub fn unregister_layer_press_js(map_id: &str, layer_id: &str) -> String {
                 map.off('mouseup', {layer_id_lit}, handlers.mouseup);
                 delete handlers.mouseup;
             }}
+            if (handlers.touchstart) {{
+                map.off('touchstart', {layer_id_lit}, handlers.touchstart);
+                delete handlers.touchstart;
+            }}
+            if (handlers.touchend) {{
+                map.off('touchend', {layer_id_lit}, handlers.touchend);
+                delete handlers.touchend;
+            }}
+            delete handlers.lastTouchAt;
             if (!handlers.click && !handlers.mouseenter && !handlers.mouseleave) {{
                 delete mapHandlers[{layer_id_lit}];
             }}
@@ -476,15 +526,19 @@ mod tests {
     use super::{register_layer_press_js, unregister_layer_press_js};
 
     #[test]
-    fn layer_press_bridge_registers_and_removes_both_mouse_phases() {
+    fn layer_press_bridge_registers_and_removes_mouse_and_touch_phases() {
         let register = register_layer_press_js("map", "places");
         assert!(register.contains("map.on('mousedown'"));
         assert!(register.contains("map.on('mouseup'"));
+        assert!(register.contains("map.on('touchstart'"));
+        assert!(register.contains("map.on('touchend'"));
         assert!(register.contains("type: 'layer_press'"));
         assert!(register.contains("pressed"));
 
         let unregister = unregister_layer_press_js("map", "places");
         assert!(unregister.contains("map.off('mousedown'"));
         assert!(unregister.contains("map.off('mouseup'"));
+        assert!(unregister.contains("map.off('touchstart'"));
+        assert!(unregister.contains("map.off('touchend'"));
     }
 }

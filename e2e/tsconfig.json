@@ -8,5 +8,10 @@
     "strict": true,
     "noEmit": true
   },
-  "include": ["playwright.config.ts", "tests/**/*.ts"]
+  "include": [
+    "playwright.config.ts",
+    "playwright.mobile.config.ts",
+    "tests/**/*.ts",
+    "mobile-tests/**/*.ts"
+  ]
 }

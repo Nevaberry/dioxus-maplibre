@@ -157,7 +157,7 @@ pub struct LayerHoverEvent {
     pub cursor_y: f64,
 }
 
-/// Event fired when the primary mouse button is pressed or released over a feature.
+/// Event fired when a primary mouse or touch pointer is pressed or released over a feature.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayerPressEvent {
     /// Layer ID where the press occurred.
@@ -172,7 +172,7 @@ pub struct LayerPressEvent {
     pub cursor_x: f64,
     /// Cursor Y position (viewport pixels).
     pub cursor_y: f64,
-    /// `true` for `mousedown`, `false` for `mouseup`.
+    /// `true` for pointer down, `false` for pointer release.
     pub pressed: bool,
 }
 

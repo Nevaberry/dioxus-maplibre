@@ -1,0 +1,23 @@
+[package]
+name = "showcase-mobile"
+version = "0.0.8"
+edition = "2024"
+rust-version = "1.97.1"
+publish = false
+
+[dependencies]
+dioxus = { version = "0.7.9", features = ["web", "router"] }
+dioxus-maplibre = { path = "../.." }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tracing = "0.1.44"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+too_many_lines = "allow"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_const_for_fn = "allow"
+significant_drop_tightening = "allow"

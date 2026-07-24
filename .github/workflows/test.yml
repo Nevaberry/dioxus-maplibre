@@ -64,6 +64,42 @@ jobs:
           path: examples/showcase-web/dist/public/
           if-no-files-found: error
 
+  # Build the installable, offline-capable phone showcase.
+  build-mobile-showcase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.97.1
+          targets: wasm32-unknown-unknown
+
+      - name: Install Dioxus CLI
+        run: curl -fsSL https://dioxus.dev/install.sh | bash -s -- v0.7.9
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: examples/showcase-mobile
+
+      - name: Check mobile showcase
+        run: |
+          cd examples/showcase-mobile
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo check --locked --target wasm32-unknown-unknown
+
+      - name: Build mobile showcase
+        run: cd examples/showcase-mobile && dx bundle --web --release --debug-symbols=false --out-dir dist --locked
+
+      - name: Upload mobile build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: showcase-mobile-dist
+          path: examples/showcase-mobile/dist/public/
+          if-no-files-found: error
+
   # E2E tests with Playwright
   e2e-tests:
     runs-on: ubuntu-latest
@@ -110,4 +146,51 @@ jobs:
         if: failure()
         with:
           name: test-screenshots
+          path: e2e/test-results/
+
+  mobile-e2e-tests:
+    runs-on: ubuntu-latest
+    needs: build-mobile-showcase
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Download mobile showcase build
+        uses: actions/download-artifact@v8
+        with:
+          name: showcase-mobile-dist
+          path: examples/showcase-mobile/dist/public/
+
+      - name: Install Playwright
+        run: |
+          cd e2e
+          bun install --frozen-lockfile
+          bunx playwright install --with-deps chromium
+
+      - name: Type-check E2E tests
+        run: cd e2e && bun run typecheck
+
+      - name: Serve and test mobile showcase
+        run: |
+          cd e2e
+          bun run serve:mobile &
+          sleep 3
+          bun run test:mobile --project=mobile-chromium
+
+      - name: Upload mobile test report
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: mobile-playwright-report
+          path: e2e/playwright-report/
+
+      - name: Upload mobile screenshots
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: mobile-test-screenshots
           path: e2e/test-results/

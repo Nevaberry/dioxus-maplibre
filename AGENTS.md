@@ -27,10 +27,16 @@ cargo clippy --all-targets -- -D warnings
 cargo check --target wasm32-unknown-unknown
 dx bundle --web --release --debug-symbols=false --out-dir dist --locked
 
+cd ../showcase-mobile
+cargo clippy --locked --all-targets -- -D warnings
+cargo check --locked --target wasm32-unknown-unknown
+dx bundle --web --release --debug-symbols=false --out-dir dist --locked
+
 cd ../../e2e
 bun install --frozen-lockfile
 bun run typecheck
 bun run test --project=chromium
+bun run test:mobile --project=mobile-chromium
 ```
 
 Use `bun run test`, not `bun test`; the latter invokes Bun's own test runner.

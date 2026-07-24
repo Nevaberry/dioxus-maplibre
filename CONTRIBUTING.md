@@ -40,6 +40,15 @@ dx serve --web --port 8080 --locked
 
 Then open http://localhost:8080 in your browser.
 
+For the phone-first PWA and offline-pack flows:
+
+```bash
+cd examples/showcase-mobile
+dx serve --web --port 8081 --locked
+```
+
+Then open http://localhost:8081 or use a phone on the same network.
+
 ### E2E Tests (Playwright)
 
 Browser smoke, API, and interaction tests. Requires [Bun](https://bun.sh/).
@@ -72,6 +81,9 @@ cd e2e
 
 # Run all Chromium tests
 bun run test
+
+# Run phone/touch/offline PWA tests
+bun run test:mobile
 
 # Run with visible browser
 bun run test:headed
@@ -123,6 +135,7 @@ cargo check --locked --all-targets --all-features
 src/                    # Library code (published to crates.io)
 tests/                  # Unit tests
 examples/showcase-web/  # Web demo app for testing
+examples/showcase-mobile/ # Mobile PWA, touch lab, and offline packs
 e2e/                    # Playwright E2E tests (optional)
 ```
 
@@ -175,5 +188,7 @@ Before submitting a PR:
 - [ ] `cargo fmt --all --check` passes
 - [ ] strict Clippy and rustdoc checks pass
 - [ ] `cd examples/showcase-web && cargo check --target wasm32-unknown-unknown` passes
+- [ ] `cd examples/showcase-mobile && cargo check --locked --target wasm32-unknown-unknown` passes
 - [ ] Showcase app works (manual check)
 - [ ] E2E tests pass: `cd e2e && bun run test` (or at minimum: `bunx playwright test --project=chromium`)
+- [ ] Mobile E2E passes: `cd e2e && bun run test:mobile`

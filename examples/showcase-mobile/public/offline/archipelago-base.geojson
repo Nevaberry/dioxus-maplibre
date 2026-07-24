@@ -1,0 +1,12 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "kind": "island", "name": "Suomenlinna" }, "geometry": { "type": "Polygon", "coordinates": [[[24.972,60.140],[25.010,60.140],[25.014,60.158],[24.982,60.164],[24.972,60.140]]] } },
+    { "type": "Feature", "properties": { "kind": "island", "name": "Vallisaari" }, "geometry": { "type": "Polygon", "coordinates": [[[25.010,60.128],[25.046,60.128],[25.052,60.148],[25.020,60.151],[25.010,60.128]]] } },
+    { "type": "Feature", "properties": { "kind": "island", "name": "Santahamina" }, "geometry": { "type": "Polygon", "coordinates": [[[25.040,60.142],[25.095,60.143],[25.105,60.176],[25.058,60.181],[25.040,60.142]]] } },
+    { "type": "Feature", "properties": { "kind": "island", "name": "Pihlajasaari" }, "geometry": { "type": "Polygon", "coordinates": [[[24.895,60.118],[24.932,60.116],[24.938,60.137],[24.905,60.143],[24.895,60.118]]] } },
+    { "type": "Feature", "properties": { "kind": "island", "name": "Korkeasaari" }, "geometry": { "type": "Polygon", "coordinates": [[[24.980,60.171],[25.000,60.168],[25.013,60.185],[24.992,60.190],[24.980,60.171]]] } },
+    { "type": "Feature", "properties": { "kind": "route" }, "geometry": { "type": "LineString", "coordinates": [[24.952,60.167],[24.975,60.153],[24.991,60.151],[25.027,60.139],[25.069,60.160]] } },
+    { "type": "Feature", "properties": { "kind": "route" }, "geometry": { "type": "LineString", "coordinates": [[24.932,60.158],[24.916,60.133],[24.900,60.126]] } }
+  ]
+}

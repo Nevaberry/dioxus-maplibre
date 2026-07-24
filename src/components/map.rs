@@ -145,7 +145,7 @@ pub struct MapProps {
     #[props(optional)]
     pub on_layer_hover: Option<EventHandler<LayerHoverEvent>>,
 
-    /// Called when the primary mouse button is pressed or released over a feature.
+    /// Called when a primary mouse or touch pointer is pressed or released over a feature.
     #[props(optional)]
     pub on_layer_press: Option<EventHandler<LayerPressEvent>>,
 
@@ -291,7 +291,7 @@ pub fn Map(props: MapProps) -> Element {
             use_drop(move || {
                 map_handle_signal.set(None);
                 let cleanup_js = destroy_map_js(&map_id);
-                spawn(async move {
+                dioxus_core::spawn_forever(async move {
                     let _ = document::eval(&cleanup_js).await;
                 });
             });

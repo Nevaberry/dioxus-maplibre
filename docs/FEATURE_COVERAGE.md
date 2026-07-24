@@ -47,3 +47,17 @@ Three.js/Babylon custom 3D renderers, deck.gl, Terra Draw, Mapbox GL Draw, PMTil
 ## Browser verification
 
 `e2e/tests/showcase.spec.ts` loads every showcase route and asserts no JavaScript/page errors during startup. It also exercises declarative mounting, media source controls, all built-in control categories, terrain state, raster/relief switching, image resolution, coordinate projection, interactions, global state, lifecycle events, sky removal, runtime projection switching, and camera roll.
+
+## Mobile showcase
+
+`examples/showcase-mobile` is the phone-oriented behavioral companion to the
+complete route-by-route web showcase. Its scenes cover clusters/symbols, 3D
+fill extrusion and queries, terrain/sky/fog, and heatmaps. Its lab drives layer
+visibility, feature state, mouse/touch hover/press/release/click, camera roll,
+projections, and styles through the public Rust API.
+
+The app is also an offline PWA: MapLibre's ESM, worker, and CSS are local;
+Helsinki, Tokyo, Matterhorn, and archipelago styles/data are local; the terrain
+pack includes a local DEM tile; and the service worker caches Dioxus's hashed
+JavaScript/WASM/CSS runtime. `e2e/mobile-tests/mobile-showcase.spec.ts` verifies
+pack pause/resume and reloads the app with Chromium's network disabled.

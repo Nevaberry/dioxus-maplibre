@@ -1,0 +1,16 @@
+{
+  "version": 8,
+  "name": "Matterhorn offline",
+  "center": [7.6586, 45.9763],
+  "zoom": 11,
+  "sources": {
+    "mountain": { "type": "geojson", "data": "/offline/matterhorn-base.geojson" }
+  },
+  "layers": [
+    { "id": "mountain-bg", "type": "background", "paint": { "background-color": "#15252c" } },
+    { "id": "snowfields", "type": "fill", "source": "mountain", "filter": ["==", ["get", "kind"], "snow"], "paint": { "fill-color": "#b8cac9", "fill-opacity": 0.38 } },
+    { "id": "rock", "type": "fill", "source": "mountain", "filter": ["==", ["get", "kind"], "rock"], "paint": { "fill-color": "#455258", "fill-opacity": 0.75 } },
+    { "id": "contours-minor", "type": "line", "source": "mountain", "filter": ["==", ["get", "kind"], "contour"], "paint": { "line-color": "#879998", "line-opacity": 0.45, "line-width": 1 } },
+    { "id": "route", "type": "line", "source": "mountain", "filter": ["==", ["get", "kind"], "route"], "paint": { "line-color": "#efc069", "line-width": 2.5, "line-dasharray": [2, 1.5] } }
+  ]
+}

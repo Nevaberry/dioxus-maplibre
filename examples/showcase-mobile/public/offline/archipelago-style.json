@@ -1,0 +1,14 @@
+{
+  "version": 8,
+  "name": "Helsinki archipelago offline",
+  "center": [24.94, 60.07],
+  "zoom": 9.3,
+  "sources": {
+    "islands": { "type": "geojson", "data": "/offline/archipelago-base.geojson" }
+  },
+  "layers": [
+    { "id": "sea", "type": "background", "paint": { "background-color": "#0a3548" } },
+    { "id": "island-fill", "type": "fill", "source": "islands", "filter": ["==", ["get", "kind"], "island"], "paint": { "fill-color": "#315d54", "fill-outline-color": "#659184" } },
+    { "id": "ferry", "type": "line", "source": "islands", "filter": ["==", ["get", "kind"], "route"], "paint": { "line-color": "#d9c07c", "line-width": 2, "line-dasharray": [3, 2] } }
+  ]
+}

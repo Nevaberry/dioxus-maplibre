@@ -123,6 +123,17 @@ cd examples/showcase-web
 dx serve --web --port 8080 --locked
 ```
 
+Run the installable, offline-capable phone showcase:
+
+```bash
+cd examples/showcase-mobile
+dx serve --web --port 8081 --locked
+```
+
+`showcase-mobile` is a mobile PWA on the `wasm32` web target. It vendors the
+MapLibre 6 runtime, includes local basemaps/data/elevation, and demonstrates
+touch press/release events plus downloadable offline packs.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup and e2e workflow.
 
 ## License
