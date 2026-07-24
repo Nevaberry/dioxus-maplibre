@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     branches: [production]
+    paths:
+      - Cargo.toml
 
 permissions:
   contents: read
@@ -11,11 +13,18 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  rust-test:
+  rust_test:
     name: Verify crate
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
+      version_changed: ${{ steps.release.outputs.version_changed }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -25,6 +34,41 @@ jobs:
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
+
+      - name: Read release version
+        id: release
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+
+          version="$(
+            cargo metadata --locked --no-deps --format-version 1 |
+              jq -er '[.packages[] | select(.name == "dioxus-maplibre") | .version]
+                | if length == 1 then .[0] else error("expected one dioxus-maplibre package") end'
+          )"
+
+          previous_version=""
+          if [[ -n "$BEFORE_SHA" && ! "$BEFORE_SHA" =~ ^0+$ ]] &&
+            git cat-file -e "${BEFORE_SHA}:Cargo.toml" 2>/dev/null
+          then
+            previous_version="$(
+              git show "${BEFORE_SHA}:Cargo.toml" |
+                python3 -c 'import sys, tomllib; print(tomllib.load(sys.stdin.buffer)["package"]["version"])'
+            )"
+          fi
+
+          if [[ "$version" == "$previous_version" ]]; then
+            version_changed=false
+          else
+            version_changed=true
+          fi
+
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+          printf 'tag=v%s\n' "$version" >> "$GITHUB_OUTPUT"
+          printf 'version_changed=%s\n' "$version_changed" >> "$GITHUB_OUTPUT"
+          printf 'Current version: %s; previous production version: %s\n' \
+            "$version" "${previous_version:-not available}"
 
       - name: Run tests
         run: cargo test --locked --all-features
@@ -38,12 +82,18 @@ jobs:
       - name: Check documentation
         run: RUSTDOCFLAGS="-D warnings" cargo doc --locked --no-deps --all-features
 
-  publish-cargo:
+  publish_cargo:
     name: Publish to crates.io
-    needs: rust-test
+    needs: rust_test
+    if: needs.rust_test.outputs.version_changed == 'true'
     runs-on: ubuntu-latest
+    concurrency:
+      group: crates-release-${{ needs.rust_test.outputs.tag }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -51,6 +101,68 @@ jobs:
           toolchain: 1.97.1
 
       - name: Publish to crates.io
-        run: cargo publish --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CRATE_NAME: dioxus-maplibre
+          VERSION: ${{ needs.rust_test.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          status="$(
+            curl --silent --show-error --retry 3 --retry-all-errors \
+              --output /dev/null --write-out '%{http_code}' \
+              --user-agent "${CRATE_NAME}-release-workflow (${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY})" \
+              "https://crates.io/api/v1/crates/${CRATE_NAME}/${VERSION}"
+          )"
+
+          case "$status" in
+            200)
+              echo "${CRATE_NAME} ${VERSION} is already on crates.io; skipping publish."
+              ;;
+            404)
+              cargo publish --locked
+              ;;
+            *)
+              echo "Unexpected crates.io response: HTTP ${status}" >&2
+              exit 1
+              ;;
+          esac
+
+  release_github:
+    name: Create GitHub release
+    needs: [rust_test, publish_cargo]
+    if: >-
+      needs.rust_test.outputs.version_changed == 'true' &&
+      needs.publish_cargo.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: github-release-${{ needs.rust_test.outputs.tag }}
+      cancel-in-progress: false
+    steps:
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.rust_test.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.rust_test.outputs.version }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "GitHub release ${RELEASE_TAG} already exists; skipping creation."
+            exit 0
+          fi
+
+          release_args=(
+            --target "$TARGET_SHA"
+            --title "$RELEASE_TAG"
+            --generate-notes
+          )
+          if [[ "$RELEASE_VERSION" == *-* ]]; then
+            release_args+=(--prerelease)
+          fi
+
+          gh release create "$RELEASE_TAG" "${release_args[@]}"
