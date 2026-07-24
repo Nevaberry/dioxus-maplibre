@@ -143,6 +143,22 @@ The repository has three long-lived branches:
 
 Do not develop directly on `main` or `production`.
 
+### Publishing to crates.io
+
+Every push to `production` runs the release workflow. The workflow verifies the
+Rust crate and then publishes it with `cargo publish --locked`, using the
+`CARGO_REGISTRY_TOKEN` GitHub Actions secret.
+
+Before promoting `main` to `production`:
+
+1. Bump the version in `Cargo.toml` and `examples/showcase/Cargo.toml`.
+2. Update `Cargo.lock` and `examples/showcase/Cargo.lock`, then confirm that the
+   version has not already been published to crates.io.
+3. Run the pull request checklist below.
+
+Crates.io versions cannot be overwritten, so every production release needs a
+new version.
+
 ### Pull Request Checklist
 
 1. Add or update focused tests

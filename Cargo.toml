@@ -1,6 +1,6 @@
 [package]
 name = "dioxus-maplibre"
-version = "0.0.7"
+version = "0.0.8"
 edition = "2024"
 rust-version = "1.97.1"
 description = "MapLibre GL JS wrapper for Dioxus 0.7"
