@@ -3,10 +3,10 @@
 use dioxus::prelude::{EventHandler, WritableExt};
 
 use crate::events::{
-    LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapErrorEvent, MapEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent, MapRollEvent,
-    MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent,
-    MarkerHoverEvent,
+    LayerClickEvent, LayerHoverEvent, LayerPressEvent, MapClickEvent, MapContextMenuEvent,
+    MapDblClickEvent, MapErrorEvent, MapEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent,
+    MapRollEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent,
+    MarkerDragStartEvent, MarkerHoverEvent,
 };
 use crate::handle::MapHandle;
 
@@ -31,6 +31,7 @@ pub(crate) struct MapEventHandlers {
     pub on_lifecycle: Option<EventHandler<MapLifecycleEvent>>,
     pub on_layer_click: Option<EventHandler<LayerClickEvent>>,
     pub on_layer_hover: Option<EventHandler<LayerHoverEvent>>,
+    pub on_layer_press: Option<EventHandler<LayerPressEvent>>,
 }
 
 impl MapEventHandlers {
@@ -115,6 +116,11 @@ impl MapEventHandlers {
             }
             MapEvent::LayerHover(event) => {
                 if let Some(handler) = &self.on_layer_hover {
+                    handler.call(event);
+                }
+            }
+            MapEvent::LayerPress(event) => {
+                if let Some(handler) = &self.on_layer_press {
                     handler.call(event);
                 }
             }

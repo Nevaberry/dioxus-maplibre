@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_maplibre::{
     FeatureId, FeatureIdentifier, GeoJsonSourceOptions, LatLng, LayerClickEvent, LayerHoverEvent,
-    LayerOptions, Map, MapHandle,
+    LayerOptions, LayerPressEvent, Map, MapHandle,
 };
 use serde_json::json;
 
@@ -10,6 +10,8 @@ pub fn Interaction() -> Element {
     let mut map_handle = use_signal(|| None::<MapHandle>);
     let mut clicked_feature = use_signal(|| None::<String>);
     let mut hovered_feature = use_signal(|| None::<String>);
+    let mut pressed_feature = use_signal(|| None::<String>);
+    let mut released_feature = use_signal(|| None::<String>);
     let mut prev_hover_id = use_signal(|| None::<FeatureId>);
     let style: Signal<String> = use_context();
 
@@ -40,14 +42,21 @@ pub fn Interaction() -> Element {
                         handle.add_layer(LayerOptions::circle("interactive-circles", "interactive")
                             .paint(json!({
                                 "circle-radius": [
-                                    "case", ["boolean", ["feature-state", "hover"], false],
-                                    16, 10
+                                    "case",
+                                    ["boolean", ["feature-state", "pressed"], false], 20,
+                                    ["boolean", ["feature-state", "hover"], false], 16,
+                                    10
                                 ],
                                 "circle-color": [
-                                    "case", ["boolean", ["feature-state", "hover"], false],
-                                    "#f59e0b", "#3b82f6"
+                                    "case",
+                                    ["boolean", ["feature-state", "pressed"], false], "#ef4444",
+                                    ["boolean", ["feature-state", "hover"], false], "#f59e0b",
+                                    "#3b82f6"
                                 ],
-                                "circle-stroke-width": 2,
+                                "circle-stroke-width": [
+                                    "case", ["boolean", ["feature-state", "pressed"], false],
+                                    4, 2
+                                ],
                                 "circle-stroke-color": "#fff"
                             }))
                         );
@@ -55,6 +64,7 @@ pub fn Interaction() -> Element {
                         // Register interaction handlers
                         handle.on_layer_click("interactive-circles");
                         handle.on_layer_hover("interactive-circles");
+                        handle.on_layer_press("interactive-circles");
 
                         map_handle.set(Some(handle));
                     },
@@ -97,6 +107,29 @@ pub fn Interaction() -> Element {
                         } else {
                             prev_hover_id.set(None);
                             hovered_feature.set(None);
+                            pressed_feature.set(None);
+                        }
+                    },
+                    on_layer_press: move |e: LayerPressEvent| {
+                        let name = e.properties.get("name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("Unknown");
+
+                        if let Some(id) = e.feature_id {
+                            let feature = FeatureIdentifier::new("interactive", id);
+                            if e.pressed {
+                                if let Some(ref map) = *map_handle.read() {
+                                    map.set_feature_state(&feature, json!({"pressed": true}));
+                                }
+                                released_feature.set(None);
+                                pressed_feature.set(Some(name.to_string()));
+                            } else {
+                                if let Some(ref map) = *map_handle.read() {
+                                    map.remove_feature_state_property(&feature, "pressed");
+                                }
+                                pressed_feature.set(None);
+                                released_feature.set(Some(name.to_string()));
+                            }
                         }
                     },
                 }
@@ -104,11 +137,32 @@ pub fn Interaction() -> Element {
             div { style: "width: 280px; background: #16213e; color: #e0e0e0; padding: 16px; font-size: 13px;",
                 h3 { style: "margin: 0 0 12px 0;", "Interaction" }
                 p { "Hover over circles to see feature state changes." }
-                p { "Click circles to select them." }
+                p { "Press and hold to see mouse-down state, then release to click and select." }
+
+                div { "data-testid": "interaction-sequence", style: "display: grid; gap: 5px; margin: 14px 0; color: #94a3b8;",
+                    span { "1. Hover → orange" }
+                    span { "2. Mouse down → red" }
+                    span { "3. Mouse up → released" }
+                    span { "4. Click → selected" }
+                }
 
                 if let Some(name) = hovered_feature() {
                     p { "data-testid": "hover-info",
                         span { style: "color: #f59e0b;", "Hovering: " }
+                        "{name}"
+                    }
+                }
+
+                if let Some(name) = pressed_feature() {
+                    p { "data-testid": "press-info",
+                        span { style: "color: #ef4444;", "Pressed: " }
+                        "{name}"
+                    }
+                }
+
+                if let Some(name) = released_feature() {
+                    p { "data-testid": "release-info",
+                        span { style: "color: #22c55e;", "Released: " }
                         "{name}"
                     }
                 }

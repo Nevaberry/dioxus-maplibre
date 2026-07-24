@@ -406,6 +406,12 @@ pub fn destroy_map_js(map_id: &str) -> String {
                     if (handlers && handlers.mouseleave) {{
                         map.off('mouseleave', layerId, handlers.mouseleave);
                     }}
+                    if (handlers && handlers.mousedown) {{
+                        map.off('mousedown', layerId, handlers.mousedown);
+                    }}
+                    if (handlers && handlers.mouseup) {{
+                        map.off('mouseup', layerId, handlers.mouseup);
+                    }}
                 }}
                 delete window.__dioxus_maplibre_layer_handlers[{map_id_lit}];
             }}

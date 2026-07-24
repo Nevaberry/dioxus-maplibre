@@ -157,6 +157,25 @@ pub struct LayerHoverEvent {
     pub cursor_y: f64,
 }
 
+/// Event fired when the primary mouse button is pressed or released over a feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LayerPressEvent {
+    /// Layer ID where the press occurred.
+    pub layer_id: String,
+    /// GeoJSON feature ID (numeric or string, if present).
+    pub feature_id: Option<FeatureId>,
+    /// Feature properties from GeoJSON.
+    pub properties: serde_json::Value,
+    /// Geographic coordinates of the pointer.
+    pub latlng: LatLng,
+    /// Cursor X position (viewport pixels).
+    pub cursor_x: f64,
+    /// Cursor Y position (viewport pixels).
+    pub cursor_y: f64,
+    /// `true` for `mousedown`, `false` for `mouseup`.
+    pub pressed: bool,
+}
+
 /// Event fired when map initialization succeeds
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MapReadyEvent;
@@ -208,4 +227,6 @@ pub enum MapEvent {
     LayerClick(LayerClickEvent),
     #[serde(rename = "layer_hover")]
     LayerHover(LayerHoverEvent),
+    #[serde(rename = "layer_press")]
+    LayerPress(LayerPressEvent),
 }

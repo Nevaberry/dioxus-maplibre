@@ -17,7 +17,7 @@ MapLibre 6 requires WebGL2 and uses ES modules. The showcase loader pins both it
 | Camera and navigation | Jump/ease/fly/fit, pan/zoom/rotate, roll, elevation, FOV, constraints, padding | Navigation, Camera & State, Projection & Globe |
 | Projections | Mercator, globe, vertical perspective, custom JSON, project/unproject | Projection & Globe, Camera & State |
 | Interactions | Box zoom, double-click zoom, drag pan/rotate, keyboard, scroll zoom, touch pitch/zoom-rotate | Interaction, Camera & State |
-| Events | Pointer, touch/camera, layer, marker, error, roll, projection, terrain, style, idle, drag/box zoom, WebGL context | Basic Map, Interaction, Events & Lifecycle |
+| Events | Pointer, touch/camera, layer hover/press/release/click, marker, error, roll, projection, terrain, style, idle, drag/box zoom, WebGL context | Basic Map, Interaction, Events & Lifecycle |
 | Feature data | Rendered/source queries, numeric/string IDs, feature/global state, GeoJSON diffs and clusters | Query, Interaction, Expressions, GeoJSON & Clusters |
 | Images | Load/add/remove/list plus MapLibre 6 missing-style-image resolver | Images & Patterns, Stress |
 | Terrain and atmosphere | DEM, terrain, skirt length, elevation, hillshade, color relief, sky/horizon/fog | Terrain, Raster & Relief, Sky & Fog |

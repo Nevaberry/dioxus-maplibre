@@ -8,9 +8,10 @@ use super::event_dispatch::MapEventHandlers;
 #[cfg(target_arch = "wasm32")]
 use crate::events::MapEvent;
 use crate::events::{
-    LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapErrorEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent, MapRollEvent, MapRotateEvent,
-    MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
+    LayerClickEvent, LayerHoverEvent, LayerPressEvent, MapClickEvent, MapContextMenuEvent,
+    MapDblClickEvent, MapErrorEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent, MapRollEvent,
+    MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent,
+    MarkerHoverEvent,
 };
 use crate::handle::MapHandle;
 use crate::interop::generate_map_id;
@@ -144,6 +145,10 @@ pub struct MapProps {
     #[props(optional)]
     pub on_layer_hover: Option<EventHandler<LayerHoverEvent>>,
 
+    /// Called when the primary mouse button is pressed or released over a feature.
+    #[props(optional)]
+    pub on_layer_press: Option<EventHandler<LayerPressEvent>>,
+
     /// Child elements rendered inside map container.
     pub children: Element,
 }
@@ -183,6 +188,7 @@ pub fn Map(props: MapProps) -> Element {
             on_lifecycle: props.on_lifecycle,
             on_layer_click: props.on_layer_click,
             on_layer_hover: props.on_layer_hover,
+            on_layer_press: props.on_layer_press,
         };
 
         let style = props.style.clone();

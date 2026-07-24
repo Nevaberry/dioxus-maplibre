@@ -53,6 +53,12 @@ pub fn remove_layer_js(map_id: &str, layer_id: &str) -> String {
                     if (handlers.mouseleave) {{
                         map.off('mouseleave', {layer_id_lit}, handlers.mouseleave);
                     }}
+                    if (handlers.mousedown) {{
+                        map.off('mousedown', {layer_id_lit}, handlers.mousedown);
+                    }}
+                    if (handlers.mouseup) {{
+                        map.off('mouseup', {layer_id_lit}, handlers.mouseup);
+                    }}
                     delete mapHandlers[{layer_id_lit}];
                 }}
 
@@ -228,7 +234,7 @@ pub fn unregister_layer_click_js(map_id: &str, layer_id: &str) -> String {
             }}
             map.off('click', {layer_id_lit}, handlers.click);
             delete handlers.click;
-            if (!handlers.mouseenter && !handlers.mouseleave) {{
+            if (!handlers.mouseenter && !handlers.mouseleave && !handlers.mousedown && !handlers.mouseup) {{
                 delete mapHandlers[{layer_id_lit}];
             }}
         }})();
@@ -325,6 +331,97 @@ pub fn unregister_layer_hover_js(map_id: &str, layer_id: &str) -> String {
                 map.off('mouseleave', {layer_id_lit}, handlers.mouseleave);
                 delete handlers.mouseleave;
             }}
+            if (!handlers.click && !handlers.mouseenter && !handlers.mouseleave && !handlers.mousedown && !handlers.mouseup) {{
+                delete mapHandlers[{layer_id_lit}];
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to register mouse down/up handlers on a layer.
+pub fn register_layer_press_js(map_id: &str, layer_id: &str) -> String {
+    let find = find_map_js(map_id);
+    let map_id_lit = js_single_quoted(map_id);
+    let layer_id_lit = js_single_quoted(layer_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            const handlersRoot = window.__dioxus_maplibre_layer_handlers;
+            if (!handlersRoot) {{
+                return;
+            }}
+            if (!handlersRoot[{map_id_lit}]) {{
+                handlersRoot[{map_id_lit}] = {{}};
+            }}
+            const mapHandlers = handlersRoot[{map_id_lit}];
+            if (!mapHandlers[{layer_id_lit}]) {{
+                mapHandlers[{layer_id_lit}] = {{}};
+            }}
+            const handlers = mapHandlers[{layer_id_lit}];
+
+            const sendPress = function(e, pressed) {{
+                if (!e.features || e.features.length === 0) {{
+                    return;
+                }}
+                const feature = e.features[0];
+                if (window.__dioxus_maplibre_sendEvent) {{
+                    window.__dioxus_maplibre_sendEvent(JSON.stringify({{
+                        type: 'layer_press',
+                        layer_id: {layer_id_lit},
+                        feature_id: feature.id !== undefined ? feature.id : null,
+                        properties: feature.properties || {{}},
+                        latlng: {{ lat: e.lngLat.lat, lng: e.lngLat.lng }},
+                        cursor_x: e.originalEvent.clientX,
+                        cursor_y: e.originalEvent.clientY,
+                        pressed
+                    }}));
+                }}
+            }};
+
+            if (!handlers.mousedown) {{
+                const onMouseDown = function(e) {{
+                    sendPress(e, true);
+                }};
+                handlers.mousedown = onMouseDown;
+                map.on('mousedown', {layer_id_lit}, onMouseDown);
+            }}
+
+            if (!handlers.mouseup) {{
+                const onMouseUp = function(e) {{
+                    sendPress(e, false);
+                }};
+                handlers.mouseup = onMouseUp;
+                map.on('mouseup', {layer_id_lit}, onMouseUp);
+            }}
+        }})();
+        "#
+    )
+}
+
+/// Generate JS to unregister mouse down/up handlers on a layer.
+pub fn unregister_layer_press_js(map_id: &str, layer_id: &str) -> String {
+    let find = find_map_js(map_id);
+    let map_id_lit = js_single_quoted(map_id);
+    let layer_id_lit = js_single_quoted(layer_id);
+    format!(
+        r#"
+        (function() {{
+            {find}
+            const mapHandlers = window.__dioxus_maplibre_layer_handlers && window.__dioxus_maplibre_layer_handlers[{map_id_lit}];
+            const handlers = mapHandlers && mapHandlers[{layer_id_lit}];
+            if (!handlers) {{
+                return;
+            }}
+            if (handlers.mousedown) {{
+                map.off('mousedown', {layer_id_lit}, handlers.mousedown);
+                delete handlers.mousedown;
+            }}
+            if (handlers.mouseup) {{
+                map.off('mouseup', {layer_id_lit}, handlers.mouseup);
+                delete handlers.mouseup;
+            }}
             if (!handlers.click && !handlers.mouseenter && !handlers.mouseleave) {{
                 delete mapHandlers[{layer_id_lit}];
             }}
@@ -372,4 +469,22 @@ pub fn move_layer_js(map_id: &str, layer_id: &str, before_id: Option<&str>) -> S
         }})();
         "#
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{register_layer_press_js, unregister_layer_press_js};
+
+    #[test]
+    fn layer_press_bridge_registers_and_removes_both_mouse_phases() {
+        let register = register_layer_press_js("map", "places");
+        assert!(register.contains("map.on('mousedown'"));
+        assert!(register.contains("map.on('mouseup'"));
+        assert!(register.contains("type: 'layer_press'"));
+        assert!(register.contains("pressed"));
+
+        let unregister = unregister_layer_press_js("map", "places");
+        assert!(unregister.contains("map.off('mousedown'"));
+        assert!(unregister.contains("map.off('mouseup'"));
+    }
 }

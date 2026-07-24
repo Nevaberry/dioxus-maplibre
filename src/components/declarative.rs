@@ -50,6 +50,7 @@ struct LayerState {
     options: LayerOptions,
     register_click_events: bool,
     register_hover_events: bool,
+    register_press_events: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -133,6 +134,9 @@ fn remove_layer_bindings(map: &MapHandle, layer: &LayerState) {
     if layer.register_hover_events {
         map.off_layer_hover(&layer.options.id);
     }
+    if layer.register_press_events {
+        map.off_layer_press(&layer.options.id);
+    }
     map.remove_layer(&layer.options.id);
 }
 
@@ -143,6 +147,9 @@ fn add_layer_bindings(map: &MapHandle, layer: &LayerState) {
     }
     if layer.register_hover_events {
         map.on_layer_hover(&layer.options.id);
+    }
+    if layer.register_press_events {
+        map.on_layer_press(&layer.options.id);
     }
 }
 
@@ -250,6 +257,8 @@ pub struct MapLayerProps {
     pub register_click_events: bool,
     #[props(default = false)]
     pub register_hover_events: bool,
+    #[props(default = false)]
+    pub register_press_events: bool,
 }
 
 #[component]
@@ -261,6 +270,7 @@ pub fn MapLayer(props: MapLayerProps) -> Element {
         options: props.options.clone(),
         register_click_events: props.register_click_events,
         register_hover_events: props.register_hover_events,
+        register_press_events: props.register_press_events,
     };
 
     use_effect(move || {

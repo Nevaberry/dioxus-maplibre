@@ -22,4 +22,14 @@ impl MapHandle {
     pub fn off_layer_hover(&self, layer_id: &str) {
         self.fire_and_forget(|| crate::interop::unregister_layer_hover_js(&self.map_id, layer_id));
     }
+
+    /// Register mouse down/up handlers on a layer (dispatched via `on_layer_press`).
+    pub fn on_layer_press(&self, layer_id: &str) {
+        self.fire_and_forget(|| crate::interop::register_layer_press_js(&self.map_id, layer_id));
+    }
+
+    /// Unregister mouse down/up handlers on a layer.
+    pub fn off_layer_press(&self, layer_id: &str) {
+        self.fire_and_forget(|| crate::interop::unregister_layer_press_js(&self.map_id, layer_id));
+    }
 }

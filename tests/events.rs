@@ -2,9 +2,9 @@
 #![allow(clippy::float_cmp, clippy::unreadable_literal)]
 
 use dioxus_maplibre::{
-    LatLng, MapClickEvent, MapContextMenuEvent, MapDblClickEvent, MapErrorEvent, MapEvent,
-    MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
-    MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent, Point,
+    FeatureId, LatLng, LayerPressEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
+    MapErrorEvent, MapEvent, MapMoveEvent, MapPitchEvent, MapRotateEvent, MapZoomEvent,
+    MarkerClickEvent, MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent, Point,
 };
 
 #[test]
@@ -211,4 +211,34 @@ fn marker_dragend_from_js_format() {
     assert_eq!(event.marker_id, "m42");
     assert_eq!(event.latlng.lat, 60.2);
     assert_eq!(event.latlng.lng, 24.8);
+}
+
+#[test]
+fn layer_press_event_from_js_format() {
+    let json = r#"{
+        "type": "layer_press",
+        "layer_id": "places",
+        "feature_id": "station-1",
+        "properties": {"name": "Central Station"},
+        "latlng": {"lat": 60.17, "lng": 24.94},
+        "cursor_x": 320.0,
+        "cursor_y": 240.0,
+        "pressed": true
+    }"#;
+    let event: MapEvent = serde_json::from_str(json).unwrap();
+    let MapEvent::LayerPress(LayerPressEvent {
+        layer_id,
+        feature_id,
+        properties,
+        pressed,
+        ..
+    }) = event
+    else {
+        panic!("expected layer press variant");
+    };
+
+    assert_eq!(layer_id, "places");
+    assert_eq!(feature_id, Some(FeatureId::String("station-1".into())));
+    assert_eq!(properties["name"], "Central Station");
+    assert!(pressed);
 }

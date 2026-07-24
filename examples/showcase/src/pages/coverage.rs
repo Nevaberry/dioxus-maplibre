@@ -39,7 +39,7 @@ const CORE_AREAS: &[(&str, &str)] = &[
     ),
     (
         "Events",
-        "Pointer, camera, layer, marker, lifecycle, roll, projection, terrain",
+        "Pointer, camera, layer hover/press/release/click, marker, lifecycle",
     ),
     (
         "Feature data",

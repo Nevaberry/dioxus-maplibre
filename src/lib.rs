@@ -41,10 +41,10 @@ pub use types::{Bounds, LatLng, MapPosition, Point, QueryFeature};
 
 // Re-export public API — Events
 pub use events::{
-    LayerClickEvent, LayerHoverEvent, MapClickEvent, MapContextMenuEvent, MapDblClickEvent,
-    MapErrorEvent, MapEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent, MapReadyEvent,
-    MapRollEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent, MarkerDragEndEvent,
-    MarkerDragStartEvent, MarkerHoverEvent,
+    LayerClickEvent, LayerHoverEvent, LayerPressEvent, MapClickEvent, MapContextMenuEvent,
+    MapDblClickEvent, MapErrorEvent, MapEvent, MapLifecycleEvent, MapMoveEvent, MapPitchEvent,
+    MapReadyEvent, MapRollEvent, MapRotateEvent, MapZoomEvent, MarkerClickEvent,
+    MarkerDragEndEvent, MarkerDragStartEvent, MarkerHoverEvent,
 };
 
 // Re-export public API — Options

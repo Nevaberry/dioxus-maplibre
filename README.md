@@ -95,7 +95,7 @@ fn App() -> Element {
 
 - `Map` root component
 - Future-proof `MapOptions` plus typed camera, bounds, projection, and interaction APIs
-- Typed pointer, camera, marker, layer, roll, error, and lifecycle callbacks
+- Typed pointer, camera, marker, layer hover/press/release/click, roll, error, and lifecycle callbacks
 - `MapHandle` imperative API with style replay across style switches
 - `use_map_handle()` context hook
 - Declarative helpers: `MapSource`, `MapLayer`, `MapMarker`, `MapPopup`, `MapControl`
