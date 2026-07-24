@@ -146,13 +146,11 @@ e2e/                    # Playwright E2E tests (optional)
 The repository has three long-lived branches:
 
 - `development` is the integration branch for active development. Create
-  short-lived feature and fix branches from it and open pull requests back to
-  `development`.
+  short-lived feature and fix branches from it.
 - `main` is the default branch and the source for preview/staging deployments.
-  Promote a tested `development` state with a `development` -> `main` pull
-  request.
+  Promote a tested `development` state to `main`.
 - `production` is the source for production deployments and crate releases.
-  Promote an approved staging state with a `main` -> `production` pull request.
+  Promote an approved staging state to `production`.
 
 Do not develop directly on `main` or `production`.
 
@@ -170,7 +168,6 @@ Before promoting `main` to `production`:
 1. Bump the version in `Cargo.toml` and `examples/showcase-web/Cargo.toml`.
 2. Update `Cargo.lock` and `examples/showcase-web/Cargo.lock`, then confirm that the
    version has not already been published to crates.io.
-3. Run the pull request checklist below.
 
 Crates.io versions and release tags are not overwritten, so every production
 release needs a new version.
@@ -181,7 +178,6 @@ release needs a new version.
 2. Run `cargo test --locked --all-features` to verify
 3. Test manually with the showcase app
 4. Run the strict formatting, Clippy, and rustdoc commands above
-5. Submit a pull request to the appropriate branch described above
 
 ## Testing Checklist
 
