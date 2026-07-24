@@ -119,7 +119,7 @@ RUSTDOCFLAGS="-D warnings" cargo doc --locked --no-deps --all-features
 Run showcase app:
 
 ```bash
-cd examples/showcase
+cd examples/showcase-web
 dx serve --web --port 8080 --locked
 ```
 

@@ -108,7 +108,7 @@ src/
 - `tests/types.rs`: core types.
 - `tests/events.rs`: event model and `MapEvent` envelope.
 - `tests/options.rs`: option serialization and builders.
-- `examples/showcase`: end-to-end manual behavior validation.
+- `examples/showcase-web`: end-to-end manual behavior validation for the web showcase.
 - `e2e/tests/showcase.spec.ts`: every showcase route plus targeted MapLibre 6 browser checks.
 
 See [FEATURE_COVERAGE.md](FEATURE_COVERAGE.md) for the source/layer/control and route matrices.

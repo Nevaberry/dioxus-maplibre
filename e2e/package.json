@@ -16,6 +16,6 @@
     "test:update-snapshots": "playwright test --update-snapshots",
     "typecheck": "tsc --noEmit",
     "report": "playwright show-report",
-    "serve:showcase": "serve --single --listen tcp://127.0.0.1:8080 --no-port-switching --no-request-logging --no-clipboard ../examples/showcase/dist/public"
+    "serve:showcase": "serve --single --listen tcp://127.0.0.1:8080 --no-port-switching --no-request-logging --no-clipboard ../examples/showcase-web/dist/public"
   }
 }

@@ -55,13 +55,13 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build showcase
-        run: cd examples/showcase && dx bundle --web --release --debug-symbols=false --out-dir dist --locked
+        run: cd examples/showcase-web && dx bundle --web --release --debug-symbols=false --out-dir dist --locked
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
           name: showcase-dist
-          path: examples/showcase/dist/public/
+          path: examples/showcase-web/dist/public/
           if-no-files-found: error
 
   # E2E tests with Playwright
@@ -80,7 +80,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: showcase-dist
-          path: examples/showcase/dist/public/
+          path: examples/showcase-web/dist/public/
 
       - name: Install Playwright
         run: |

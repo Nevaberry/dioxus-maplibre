@@ -34,7 +34,7 @@ cargo test latlng_new
 The showcase app demonstrates all features and is useful for manual testing.
 
 ```bash
-cd examples/showcase
+cd examples/showcase-web
 dx serve --web --port 8080 --locked
 ```
 
@@ -102,7 +102,7 @@ bunx playwright test tests/showcase.spec.ts
 - You used `bun test` instead of `bun run test`. The correct command is `bun run test`.
 
 **Tests time out while starting the showcase**
-- Run `cd examples/showcase && dx bundle --web --release --debug-symbols=false --out-dir dist --locked` to verify the web build independently.
+- Run `cd examples/showcase-web && dx bundle --web --release --debug-symbols=false --out-dir dist --locked` to verify the web build independently.
 
 ## Code Quality
 
@@ -122,7 +122,7 @@ cargo check --locked --all-targets --all-features
 ```
 src/                    # Library code (published to crates.io)
 tests/                  # Unit tests
-examples/showcase/      # Demo app for testing
+examples/showcase-web/  # Web demo app for testing
 e2e/                    # Playwright E2E tests (optional)
 ```
 
@@ -151,8 +151,8 @@ Rust crate and then publishes it with `cargo publish --locked`, using the
 
 Before promoting `main` to `production`:
 
-1. Bump the version in `Cargo.toml` and `examples/showcase/Cargo.toml`.
-2. Update `Cargo.lock` and `examples/showcase/Cargo.lock`, then confirm that the
+1. Bump the version in `Cargo.toml` and `examples/showcase-web/Cargo.toml`.
+2. Update `Cargo.lock` and `examples/showcase-web/Cargo.lock`, then confirm that the
    version has not already been published to crates.io.
 3. Run the pull request checklist below.
 
@@ -174,6 +174,6 @@ Before submitting a PR:
 - [ ] `cargo test --locked --all-features` passes
 - [ ] `cargo fmt --all --check` passes
 - [ ] strict Clippy and rustdoc checks pass
-- [ ] `cd examples/showcase && cargo check --target wasm32-unknown-unknown` passes
+- [ ] `cd examples/showcase-web && cargo check --target wasm32-unknown-unknown` passes
 - [ ] Showcase app works (manual check)
 - [ ] E2E tests pass: `cd e2e && bun run test` (or at minimum: `bunx playwright test --project=chromium`)

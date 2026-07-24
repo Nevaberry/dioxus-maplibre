@@ -22,7 +22,7 @@ cargo test --locked --all-features
 cargo clippy --locked --all-targets --all-features -- -D warnings
 RUSTDOCFLAGS="-D warnings" cargo doc --locked --no-deps --all-features
 
-cd examples/showcase
+cd examples/showcase-web
 cargo clippy --all-targets -- -D warnings
 cargo check --target wasm32-unknown-unknown
 dx bundle --web --release --debug-symbols=false --out-dir dist --locked

@@ -1,6 +1,6 @@
 # E2E Tests
 
-Behavioral Playwright tests for the dioxus-maplibre showcase app.
+Behavioral Playwright tests for the dioxus-maplibre web showcase app.
 
 ## Prerequisites
 
@@ -24,14 +24,14 @@ bunx playwright install chromium
 bun run test
 ```
 
-Playwright will automatically run `dx serve --web --port 8080 --open false --locked` in `../examples/showcase/` and wait up to 2 minutes for the WASM build to complete. If the server is already running, it reuses it.
+Playwright will automatically run `dx serve --web --port 8080 --open false --locked` in `../examples/showcase-web/` and wait up to 2 minutes for the WASM build to complete. If the server is already running, it reuses it.
 
 ### Manual (start server yourself)
 
 In one terminal:
 
 ```bash
-cd ../examples/showcase
+cd ../examples/showcase-web
 dx serve --web --port 8080 --open false --locked
 ```
 

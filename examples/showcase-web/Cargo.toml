@@ -1,5 +1,5 @@
 [package]
-name = "showcase"
+name = "showcase-web"
 version = "0.0.8"
 edition = "2024"
 publish = false

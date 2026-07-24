@@ -1,8 +1,8 @@
 [application]
-name = "dioxus-maplibre showcase"
+name = "dioxus-maplibre web showcase"
 
 [web.app]
-title = "dioxus-maplibre showcase"
+title = "dioxus-maplibre web showcase"
 
 [web.resource]
 style = ["https://unpkg.com/maplibre-gl@6.0.0/dist/maplibre-gl.css"]

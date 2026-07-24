@@ -16,7 +16,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cd ../examples/showcase && dx serve --web --port 8080 --open false --locked',
+    command: 'cd ../examples/showcase-web && dx serve --web --port 8080 --open false --locked',
     port: 8080,
     timeout: 120_000,
     reuseExistingServer: true,
