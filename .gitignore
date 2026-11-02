@@ -31,3 +31,6 @@ examples/*/.dioxus/
 
 # AI
 .claude/
+
+# Local research notes
+/research/mobile-map-showcase-inspiration.md
